@@ -85,7 +85,7 @@ void main() {
       );
 
       expect(response.statusCode, 201);
-      final data = response.json();
+      final data = await response.json();
       expect(data.get<String>('id'), '123');
       expect(data.get<String>('name'), 'Jane Doe');
       expect(data.get<String>('email'), 'jane@example.com');
@@ -120,7 +120,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      final list = response.json();
+      final list = await response.json();
       expect(list.length, 2);
       expect(list[0].get<String>('name'), contains('test'));
     });

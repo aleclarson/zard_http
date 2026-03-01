@@ -70,11 +70,9 @@ class HttpContractClient implements ContractClient {
     }
 
     if (contract is ObjectQuery<R> || contract is ObjectCommand<R>) {
-      final httpResponse = await http.Response.fromStream(response);
-      return ObjectResponse<R>(httpResponse) as Res;
+      return ObjectResponse<R>(response) as Res;
     } else if (contract is ListQuery<R> || contract is ListCommand<R>) {
-      final httpResponse = await http.Response.fromStream(response);
-      return ListResponse<R>(httpResponse) as Res;
+      return ListResponse<R>(response) as Res;
     }
 
     throw Exception('Unknown contract type: $Res');

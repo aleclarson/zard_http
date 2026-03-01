@@ -88,14 +88,20 @@ extension ObjectDataExtension<R> on ObjectData<R> {
   }
 }
 
-/// Zero-copy extension type for [http.Response] to add model-less extraction.
-extension type ObjectResponse<R>(http.Response _response) implements http.BaseResponse {
-  ObjectData<R> json() => ObjectData<R>(jsonDecode(_response.body));
+/// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction.
+extension type ObjectResponse<R>(http.StreamedResponse _response) implements http.BaseResponse {
+  Future<ObjectData<R>> json() async {
+    final body = await _response.stream.bytesToString();
+    return ObjectData<R>(jsonDecode(body));
+  }
 }
 
-/// Zero-copy extension type for [http.Response] to add model-less extraction for lists.
-extension type ListResponse<R>(http.Response _response) implements http.BaseResponse {
-  List<ObjectData<R>> json() => (jsonDecode(_response.body) as List<dynamic>)
-      .map((i) => ObjectData<R>(i as Map<String, dynamic>))
-      .toList();
+/// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction for lists.
+extension type ListResponse<R>(http.StreamedResponse _response) implements http.BaseResponse {
+  Future<List<ObjectData<R>>> json() async {
+    final body = await _response.stream.bytesToString();
+    return (jsonDecode(body) as List<dynamic>)
+        .map((i) => ObjectData<R>(i as Map<String, dynamic>))
+        .toList();
+  }
 }
