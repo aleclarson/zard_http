@@ -85,31 +85,32 @@ void main() {
       );
 
       expect(response.statusCode, 201);
-      expect(response.get<String>('id'), '123');
-      expect(response.get<String>('name'), 'Jane Doe');
-      expect(response.get<String>('email'), 'jane@example.com');
+      final data = response.json();
+      expect(data.get<String>('id'), '123');
+      expect(data.get<String>('name'), 'Jane Doe');
+      expect(data.get<String>('email'), 'jane@example.com');
 
       // Test parse extensions
-      final createdAt = response.parseDateTime('created_at');
+      final createdAt = data.parseDateTime('created_at');
       expect(createdAt.year, 2023);
 
-      final updatedAt = response.parseDateTime('updated_at');
+      final updatedAt = data.parseDateTime('updated_at');
       expect(updatedAt.year, 2023);
       expect(updatedAt.millisecondsSinceEpoch, 1672574400000);
 
-      final tags = response.parseBySchema<List<dynamic>, List<dynamic>>('tags', z.list(z.string()));
+      final tags = data.parseBySchema<List<dynamic>, List<dynamic>>('tags', z.list(z.string()));
       expect(tags, contains('dart'));
 
-      final role = response.parseEnumByName('role', UserRole.values);
+      final role = data.parseEnumByName('role', UserRole.values);
       expect(role, UserRole.admin);
 
       // Test optional variants
-      expect(response.parseDateTimeOptional('created_at'), isNotNull);
-      expect(response.parseDateTimeOptional('missing'), isNull);
-      expect(response.parseBySchemaOptional('tags', z.list(z.string())), isNotNull);
-      expect(response.parseBySchemaOptional('missing', z.list(z.string())), isNull);
-      expect(response.parseEnumByNameOptional('role', UserRole.values), UserRole.admin);
-      expect(response.parseEnumByNameOptional('missing', UserRole.values), isNull);
+      expect(data.parseDateTimeOptional('created_at'), isNotNull);
+      expect(data.parseDateTimeOptional('missing'), isNull);
+      expect(data.parseBySchemaOptional('tags', z.list(z.string())), isNotNull);
+      expect(data.parseBySchemaOptional('missing', z.list(z.string())), isNull);
+      expect(data.parseEnumByNameOptional('role', UserRole.values), UserRole.admin);
+      expect(data.parseEnumByNameOptional('missing', UserRole.values), isNull);
     });
 
     test('ListQuery works', () async {
@@ -119,7 +120,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      final list = response.toList();
+      final list = response.json();
       expect(list.length, 2);
       expect(list[0].get<String>('name'), contains('test'));
     });
