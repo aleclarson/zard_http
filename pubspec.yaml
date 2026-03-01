@@ -1,0 +1,10 @@
+name: dart_library_template
+description: Template for Dart library
+version: 0.1.0
+repository: https://github.com/aleclarson/dart_library_template
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dev_dependencies:
+  test: ^1.24.0
