@@ -2,6 +2,8 @@
 
 Lightning-fast, boilerplate-free HTTP networking for Dart. Designed for AI synergy and model-less data access.
 
+Zard HTTP was born from a simple desire: to make network requests in Dart feel as direct and lightweight as possible, without sacrificing safety. We wanted a way to define contracts that both the client and server could trust, using strict validation at the edges while keeping the data itself flexible and model-free. It's built for developers who want to move fast, skip the code generation, and just work with their data.
+
 ## Features
 - **Pure Model-less Data:** JSON is kept as `Map<String, dynamic>`. No code generation or `fromJson`/`toJson` boilerplate.
 - **Edge Validation:** Every request is strictly validated at the network boundary (client-side pre-flight and server-side ingestion) using [Zard](https://pub.dev/packages/zard).
