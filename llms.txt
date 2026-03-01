@@ -1,0 +1,54 @@
+# Zard HTTP - AI Reference
+
+A model-less, contract-driven HTTP library for Dart focused on rapid development and edge validation.
+
+## Core Concepts
+
+### 1. Singleton Contracts
+Define endpoints as global singletons using one of these classes:
+- `ObjectQuery<R>` / `ObjectCommand<R>`: For single JSON objects.
+- `ListQuery<R>` / `ListCommand<R>`: For arrays of JSON objects.
+- `RawQuery<R>` / `RawCommand<R>`: For plain HTTP responses (StreamedResponse).
+
+**Key Rules:**
+- `R` is a phantom record type used only for documentation/hints.
+- `body` is **required** for all Command types.
+- `method` defaults to 'GET' for Queries and 'POST' for Commands.
+
+### 2. Model-less Data Access (`ObjectData`)
+`ObjectData` is the primary interface for reading JSON. It is used by server requests (`request.body`, `request.query`) and client responses (`await response.json()`).
+
+**Standard Accessors:**
+- `get<T>(key)`: Strictly extracts a value. Throws if missing or wrong type.
+- `getOptional<T>(key)`: Returns `null` if missing. Throws if wrong type.
+- `parse<T, RAW>(key, T Function(RAW) parser)`: Maps a raw value via a function.
+
+**Convenience Extensions:**
+- `parseDateTime(key)`: Parses ISO 8601 strings or integer epoch milliseconds.
+- `parseEnumByName(key, values)`: Maps a string to an enum value.
+- `parseBySchema(key, schema)`: Uses a Zard schema for complex nested validation.
+- All extensions have `Optional` variants (e.g., `parseDateTimeOptional`).
+
+### 3. Client API (`HttpContractClient`)
+`request(contract, ...)` returns:
+- `ObjectResponse<R>`: Use `await response.json()` to get `ObjectData<R>`.
+- `ListResponse<R>`: Use `await response.json()` to get `List<ObjectData<R>>`.
+- `http.StreamedResponse`: Returned directly for Raw types.
+
+**Note:** `ObjectResponse` and `ListResponse` are zero-copy extension types on `http.StreamedResponse`.
+
+### 4. Server API (Shelf Adapter)
+Import `package:zard_http/shelf.dart`.
+- `router.addQuery(contract, handler)`: Provides `QueryRequest<R>`.
+- `router.addCommand(contract, handler)`: Provides `CommandRequest<R>` with a non-nullable `body`.
+- Validation: The adapter automatically returns `400 Bad Request` if Zard validation fails.
+
+## Usage Guidelines for AI Agents
+
+1. **Avoid Data Classes:** Do not generate `fromJson`/`toJson` or `immutable` classes unless explicitly asked. Use `ObjectData` accessors directly in logic and UI.
+2. **Strict Edge Validation:** Leverage Zard schemas in contracts to ensure that handlers only ever receive valid data.
+3. **Async Awareness:** Always `await response.json()` on the client side.
+4. **Phantom Types:** When defining contracts, always provide a descriptive record type for `R` to assist with IDE autocomplete and future reasoning.
+   ```dart
+   final getUser = ObjectQuery<({String id, String email})>(path: '/user');
+   ```
