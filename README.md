@@ -4,7 +4,7 @@ Lightning-fast, boilerplate-free HTTP networking for Dart. Designed for AI syner
 
 ## Features
 - **Pure Model-less Data:** JSON is kept as `Map<String, dynamic>`. No code generation or `fromJson`/`toJson` boilerplate.
-- **Edge Validation:** Every request and response is strictly validated at the network boundary using [Zard](https://pub.dev/packages/zard).
+- **Edge Validation:** Every request is strictly validated at the network boundary (client-side pre-flight and server-side ingestion) using [Zard](https://pub.dev/packages/zard).
 - **CQRS Contracts:** API boundaries are defined as singleton contracts, separating Queries (GET) from Commands (POST/PUT/PATCH/DELETE).
 - **Zero-Copy Performance:** Response wrappers are implemented as **extension types** on `http.StreamedResponse` for maximum efficiency.
 - **Framework Agnostic:** The core library works in any environment; includes a first-class Shelf adapter.
@@ -56,8 +56,27 @@ router.addCommand(createUser, (request) async {
 
 ## Installation
 
-Add to your `pubspec.yaml`:
-```yaml
-dependencies:
-  zard_http: ^0.1.0
+```bash
+dart pub add zard_http
 ```
+
+## In-depth
+
+### Singleton Contracts
+Endpoints are defined as global constants. This allows both the client and server to share the same validation logic and routing metadata. Phantom record types (`R`) are used to document the expected JSON shape for developers and AI agents.
+
+### Strict Request Validation
+When using `client.request`, the provided `body`, `query`, or `headers` maps are validated against the contract's Zard schemas before the request is even sent. On the server, the adapter validates the incoming data before your handler is ever called, automatically returning a `400 Bad Request` with descriptive Zard issues on failure.
+
+### Asynchronous Data Access
+To maintain zero-copy performance, `ObjectResponse` and `ListResponse` wrap the raw `http.StreamedResponse`. Calling `.json()` asynchronously consumes the stream and decodes the JSON into an `ObjectData` accessor.
+
+### Model-less Extraction
+`ObjectData` provides a robust API for extracting data without classes:
+- `get<T>(key)`: Strict extraction.
+- `parseDateTime(key)`: Handles ISO 8601 strings and epoch integers.
+- `parseEnumByName(key, values)`: Safe enum mapping.
+- `parseBySchema(key, schema)`: Nested validation for complex structures.
+
+## License
+MIT

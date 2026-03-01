@@ -11,11 +11,15 @@ Define endpoints as global singletons using one of these classes:
 - `RawQuery<R>` / `RawCommand<R>`: For plain HTTP responses (StreamedResponse).
 
 **Key Rules:**
-- `R` is a phantom record type used only for documentation/hints.
+- `R` is a phantom record type used strictly for documentation and AI reasoning. It does not provide IDE autocomplete for the JSON keys.
 - `body` is **required** for all Command types.
 - `method` defaults to 'GET' for Queries and 'POST' for Commands.
 
-### 2. Model-less Data Access (`ObjectData`)
+### 2. Validation Philosophy
+- **Request Data:** Validated twice. Once on the client (pre-flight) and once on the server (ingestion). If an AI agent provides a bad map, it throws immediately.
+- **Response Data:** Not validated upon receipt. Validation only occurs at runtime when you extract values via the `ObjectData` interface.
+
+### 3. Model-less Data Access (`ObjectData`)
 `ObjectData` is the primary interface for reading JSON. It is used by server requests (`request.body`, `request.query`) and client responses (`await response.json()`).
 
 **Standard Accessors:**
@@ -27,17 +31,15 @@ Define endpoints as global singletons using one of these classes:
 - `parseDateTime(key)`: Parses ISO 8601 strings or integer epoch milliseconds.
 - `parseEnumByName(key, values)`: Maps a string to an enum value.
 - `parseBySchema(key, schema)`: Uses a Zard schema for complex nested validation.
-- All extensions have `Optional` variants (e.g., `parseDateTimeOptional`).
+- All extensions have `Optional` variants.
 
-### 3. Client API (`HttpContractClient`)
+### 4. Client API (`HttpContractClient`)
 `request(contract, ...)` returns:
 - `ObjectResponse<R>`: Use `await response.json()` to get `ObjectData<R>`.
 - `ListResponse<R>`: Use `await response.json()` to get `List<ObjectData<R>>`.
 - `http.StreamedResponse`: Returned directly for Raw types.
 
-**Note:** `ObjectResponse` and `ListResponse` are zero-copy extension types on `http.StreamedResponse`.
-
-### 4. Server API (Shelf Adapter)
+### 5. Server API (Shelf Adapter)
 Import `package:zard_http/shelf.dart`.
 - `router.addQuery(contract, handler)`: Provides `QueryRequest<R>`.
 - `router.addCommand(contract, handler)`: Provides `CommandRequest<R>` with a non-nullable `body`.
@@ -48,7 +50,7 @@ Import `package:zard_http/shelf.dart`.
 1. **Avoid Data Classes:** Do not generate `fromJson`/`toJson` or `immutable` classes unless explicitly asked. Use `ObjectData` accessors directly in logic and UI.
 2. **Strict Edge Validation:** Leverage Zard schemas in contracts to ensure that handlers only ever receive valid data.
 3. **Async Awareness:** Always `await response.json()` on the client side.
-4. **Phantom Types:** When defining contracts, always provide a descriptive record type for `R` to assist with IDE autocomplete and future reasoning.
+4. **Phantom Types:** When defining contracts, always provide a descriptive record type for `R` to assist with reasoning about the expected shape.
    ```dart
    final getUser = ObjectQuery<({String id, String email})>(path: '/user');
    ```
