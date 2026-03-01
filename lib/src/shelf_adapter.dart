@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -91,7 +90,7 @@ class ShelfQueryRequest<R> implements QueryRequest<R> {
     if (contract.query != null) {
       final queryParams = shelfRequest.url.queryParameters;
       final parsedQuery = contract.query!.parse(queryParams);
-      queryData = ObjectData<R>(parsedQuery as Map<String, dynamic>);
+      queryData = ObjectData<R>(parsedQuery);
     }
 
     return ShelfQueryRequest<R>(
@@ -133,7 +132,7 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
     if (contract.query != null) {
       final queryParams = shelfRequest.url.queryParameters;
       final parsedQuery = contract.query!.parse(queryParams);
-      queryData = ObjectData<R>(parsedQuery as Map<String, dynamic>);
+      queryData = ObjectData<R>(parsedQuery);
     }
 
     // Validate Body
@@ -182,7 +181,7 @@ class ShelfUploadRequest<R> implements UploadRequest<R> {
     if (contract.query != null) {
       final queryParams = shelfRequest.url.queryParameters;
       final parsedQuery = contract.query!.parse(queryParams);
-      queryData = ObjectData<R>(parsedQuery as Map<String, dynamic>);
+      queryData = ObjectData<R>(parsedQuery);
     }
 
     return ShelfUploadRequest<R>(
