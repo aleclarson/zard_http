@@ -41,6 +41,7 @@ When updating the `CHANGELOG.md`, only include meaningful changes (features, bug
 ### Workflow
 
 1.  **Format Code**: Run `dart format .` to ensure consistent code style.
-2.  **Stage Changes**: Use `git add` to stage the relevant changes.
-3.  **Commit**: Use `git commit -m "<message>"` with a conventional commit message.
-4.  **No Push**: Do not push changes to remote branches unless explicitly requested by the user.
+2.  **Analyze Code**: Run `dart analyze .` to ensure no issues exist.
+3.  **Stage Changes**: Use `git add` to stage the relevant changes.
+4.  **Commit**: Use `git commit -m "<message>"` with a conventional commit message.
+5.  **No Push**: Do not push changes to remote branches unless explicitly requested by the user.

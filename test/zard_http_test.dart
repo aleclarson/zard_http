@@ -106,7 +106,8 @@ void main() {
       expect(updatedAt.year, 2023);
       expect(updatedAt.millisecondsSinceEpoch, 1672574400000);
 
-      final tags = data.parseBySchema<List<dynamic>, List<dynamic>>('tags', z.list(z.string()));
+      final tags = data.parseBySchema<List<dynamic>, List<dynamic>>(
+          'tags', z.list(z.string()));
       expect(tags, contains('dart'));
 
       final role = data.parseEnumByName('role', UserRole.values);
@@ -117,7 +118,8 @@ void main() {
       expect(data.parseDateTimeOptional('missing'), isNull);
       expect(data.parseBySchemaOptional('tags', z.list(z.string())), isNotNull);
       expect(data.parseBySchemaOptional('missing', z.list(z.string())), isNull);
-      expect(data.parseEnumByNameOptional('role', UserRole.values), UserRole.admin);
+      expect(data.parseEnumByNameOptional('role', UserRole.values),
+          UserRole.admin);
       expect(data.parseEnumByNameOptional('missing', UserRole.values), isNull);
     });
 
@@ -150,7 +152,8 @@ void main() {
 
     test('Validation fails on client', () async {
       expect(
-        () => client.request(createUser, body: {'name': 'Jane Doe', 'email': 'not-an-email'}),
+        () => client.request(createUser,
+            body: {'name': 'Jane Doe', 'email': 'not-an-email'}),
         throwsA(isA<ZardError>()),
       );
     });

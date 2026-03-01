@@ -13,11 +13,14 @@ extension ContractRouter on Router {
   ) {
     add(contract.method, contract.path, (Request shelfRequest) async {
       try {
-        final contractRequest = await ShelfCommandRequest.fromShelfRequest<R, Res>(shelfRequest, contract);
+        final contractRequest =
+            await ShelfCommandRequest.fromShelfRequest<R, Res>(
+                shelfRequest, contract);
         return await handler(contractRequest);
       } on ZardError catch (e) {
         return Response(400,
-            body: jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
+            body:
+                jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
             headers: {'Content-Type': 'application/json'});
       } catch (e) {
         return Response.internalServerError(body: e.toString());
@@ -31,11 +34,14 @@ extension ContractRouter on Router {
   ) {
     add(contract.method, contract.path, (Request shelfRequest) async {
       try {
-        final contractRequest = await ShelfQueryRequest.fromShelfRequest<R, Res>(shelfRequest, contract);
+        final contractRequest =
+            await ShelfQueryRequest.fromShelfRequest<R, Res>(
+                shelfRequest, contract);
         return await handler(contractRequest);
       } on ZardError catch (e) {
         return Response(400,
-            body: jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
+            body:
+                jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
             headers: {'Content-Type': 'application/json'});
       } catch (e) {
         return Response.internalServerError(body: e.toString());
@@ -49,11 +55,14 @@ extension ContractRouter on Router {
   ) {
     add(contract.method, contract.path, (Request shelfRequest) async {
       try {
-        final contractRequest = await ShelfUploadRequest.fromShelfRequest<R, Res>(shelfRequest, contract);
+        final contractRequest =
+            await ShelfUploadRequest.fromShelfRequest<R, Res>(
+                shelfRequest, contract);
         return await handler(contractRequest);
       } on ZardError catch (e) {
         return Response(400,
-            body: jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
+            body:
+                jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
             headers: {'Content-Type': 'application/json'});
       } catch (e) {
         return Response.internalServerError(body: e.toString());
@@ -75,7 +84,8 @@ class ShelfQueryRequest<R> implements QueryRequest<R> {
     required this.headers,
   });
 
-  static Future<ShelfQueryRequest<R>> fromShelfRequest<R, Res extends http.BaseResponse>(
+  static Future<ShelfQueryRequest<R>>
+      fromShelfRequest<R, Res extends http.BaseResponse>(
     Request shelfRequest,
     HttpContract<R, Res> contract,
   ) async {
@@ -117,7 +127,8 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
     required this.body,
   });
 
-  static Future<ShelfCommandRequest<R>> fromShelfRequest<R, Res extends http.BaseResponse>(
+  static Future<ShelfCommandRequest<R>>
+      fromShelfRequest<R, Res extends http.BaseResponse>(
     Request shelfRequest,
     HttpContract<R, Res> contract,
   ) async {
@@ -166,7 +177,8 @@ class ShelfUploadRequest<R> implements UploadRequest<R> {
   @override
   Stream<List<int>> read() => shelfRequest.read();
 
-  static Future<ShelfUploadRequest<R>> fromShelfRequest<R, Res extends http.BaseResponse>(
+  static Future<ShelfUploadRequest<R>>
+      fromShelfRequest<R, Res extends http.BaseResponse>(
     Request shelfRequest,
     HttpContract<R, Res> contract,
   ) async {

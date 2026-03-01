@@ -19,7 +19,8 @@ class HttpContractClient implements ContractClient {
   final String baseUrl;
   final http.Client _client;
 
-  HttpContractClient(this.baseUrl, {http.Client? client}) : _client = client ?? http.Client();
+  HttpContractClient(this.baseUrl, {http.Client? client})
+      : _client = client ?? http.Client();
 
   @override
   Future<Res> request<R, Res extends http.BaseResponse>(
@@ -47,7 +48,8 @@ class HttpContractClient implements ContractClient {
             : baseUrl + contract.path;
 
     final uri = Uri.parse(fullPath).replace(
-      queryParameters: query?.map((key, value) => MapEntry(key, value.toString())),
+      queryParameters:
+          query?.map((key, value) => MapEntry(key, value.toString())),
     );
 
     final requestHeaders = {
@@ -71,13 +73,19 @@ class HttpContractClient implements ContractClient {
     final response = await _client.send(request);
 
     // 4. Wrap Response
-    if (contract is RawQuery<R> || contract is RawCommand<R> || contract is RawUpload<R>) {
+    if (contract is RawQuery<R> ||
+        contract is RawCommand<R> ||
+        contract is RawUpload<R>) {
       return response as Res;
     }
 
-    if (contract is ObjectQuery<R> || contract is ObjectCommand<R> || contract is ObjectUpload<R>) {
+    if (contract is ObjectQuery<R> ||
+        contract is ObjectCommand<R> ||
+        contract is ObjectUpload<R>) {
       return ObjectResponse<R>(response) as Res;
-    } else if (contract is ListQuery<R> || contract is ListCommand<R> || contract is ListUpload<R>) {
+    } else if (contract is ListQuery<R> ||
+        contract is ListCommand<R> ||
+        contract is ListUpload<R>) {
       return ListResponse<R>(response) as Res;
     }
 

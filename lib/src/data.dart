@@ -17,7 +17,8 @@ class ObjectData<R> {
       throw Exception('Key "$key" not found in data');
     }
     if (value is! T) {
-      throw Exception('Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
+      throw Exception(
+          'Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
     }
     return value;
   }
@@ -27,7 +28,8 @@ class ObjectData<R> {
     final value = _data[key];
     if (value == null) return null;
     if (value is! T) {
-      throw Exception('Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
+      throw Exception(
+          'Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
     }
     return value;
   }
@@ -44,7 +46,8 @@ class ObjectData<R> {
 
 extension ObjectDataExtension<R> on ObjectData<R> {
   /// Parses complex data using a [Schema].
-  T parseBySchema<T, RAW>(String key, Schema<T> schema) => parse<T, RAW>(key, schema.parse);
+  T parseBySchema<T, RAW>(String key, Schema<T> schema) =>
+      parse<T, RAW>(key, schema.parse);
 
   /// Parses complex data using a [Schema]. Returns null if the key is missing.
   T? parseBySchemaOptional<T, RAW>(String key, Schema<T> schema) {
@@ -125,7 +128,8 @@ abstract class UploadRequest<R> extends QueryRequest<R> {
 }
 
 /// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction.
-extension type ObjectResponse<R>(http.StreamedResponse _response) implements http.BaseResponse {
+extension type ObjectResponse<R>(http.StreamedResponse _response)
+    implements http.BaseResponse {
   Future<ObjectData<R>> json() async {
     final body = await _response.stream.bytesToString();
     return ObjectData<R>(jsonDecode(body));
@@ -133,7 +137,8 @@ extension type ObjectResponse<R>(http.StreamedResponse _response) implements htt
 }
 
 /// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction for lists.
-extension type ListResponse<R>(http.StreamedResponse _response) implements http.BaseResponse {
+extension type ListResponse<R>(http.StreamedResponse _response)
+    implements http.BaseResponse {
   Future<List<ObjectData<R>>> json() async {
     final body = await _response.stream.bytesToString();
     return (jsonDecode(body) as List<dynamic>)
