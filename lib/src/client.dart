@@ -73,24 +73,14 @@ class HttpContractClient implements ContractClient {
     final response = await _client.send(request);
 
     // 4. Wrap Response
-    if (contract is HttpQuery<R> ||
-        contract is HttpCommand<R> ||
-        contract is HttpUpload<R>) {
-      return response as Res;
-    }
-
-    if (contract is MapQuery<R> ||
-        contract is MapCommand<R> ||
-        contract is MapUpload<R>) {
+    if (contract is HttpContract<R, MapResponse<R>>) {
       return MapResponse<R>(response) as Res;
-    } else if (contract is ListQuery<R> ||
-        contract is ListCommand<R> ||
-        contract is ListUpload<R>) {
+    } else if (contract is HttpContract<R, ListResponse<R>>) {
       return ListResponse<R>(response) as Res;
-    } else if (contract is VoidQuery<R> ||
-        contract is VoidCommand<R> ||
-        contract is VoidUpload<R>) {
+    } else if (contract is HttpContract<R, VoidResponse<R>>) {
       return VoidResponse<R>(response) as Res;
+    } else if (contract is HttpContract<R, http.StreamedResponse>) {
+      return response as Res;
     }
 
     throw Exception('Unknown contract type: $Res');
