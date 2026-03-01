@@ -159,24 +159,10 @@ extension ObjectResponseExtension<R> on ObjectResponse<R> {
   }
 }
 
-/// Response type for lists of JSON objects.
-class ListResponse<R> extends http.BaseResponse with IterableMixin<ObjectData<R>> {
-  final List<ObjectData<R>> _items;
+/// Zero-copy extension type for [http.Response] to add model-less extraction for lists.
+extension type ListResponse<R>(http.Response _response) implements http.BaseResponse {
+  List<dynamic> get _json => jsonDecode(_response.body);
 
-  ListResponse(
-    super.statusCode,
-    List<dynamic> items, {
-    super.contentLength,
-    super.request,
-    super.headers,
-    super.isRedirect,
-    super.persistentConnection,
-    super.reasonPhrase,
-  }) : _items = items.map((i) => MapObjectData<R>(i as Map<String, dynamic>)).toList();
-
-  @override
-  Iterator<ObjectData<R>> get iterator => _items.iterator;
-
-  @override
-  String toString() => 'ListResponse($statusCode, $_items)';
+  List<ObjectData<R>> toList() =>
+      _json.map((i) => MapObjectData<R>(i as Map<String, dynamic>)).toList();
 }

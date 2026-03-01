@@ -73,20 +73,8 @@ class HttpContractClient implements ContractClient {
       final httpResponse = await http.Response.fromStream(response);
       return ObjectResponse<R>(httpResponse) as Res;
     } else if (contract is ListQuery<R> || contract is ListCommand<R>) {
-      final responseBytes = await response.stream.toBytes();
-      final responseBody = utf8.decode(responseBytes);
-      final decoded = (responseBody.isNotEmpty ? jsonDecode(responseBody) : <dynamic>[]) as List<dynamic>;
-
-      return ListResponse<R>(
-        response.statusCode,
-        decoded,
-        headers: response.headers,
-        contentLength: response.contentLength,
-        reasonPhrase: response.reasonPhrase,
-        isRedirect: response.isRedirect,
-        persistentConnection: response.persistentConnection,
-        request: response.request,
-      ) as Res;
+      final httpResponse = await http.Response.fromStream(response);
+      return ListResponse<R>(httpResponse) as Res;
     }
 
     throw Exception('Unknown contract type: $Res');
