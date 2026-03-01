@@ -9,28 +9,16 @@ The base abstract class for all contracts.
 - `R`: A phantom record type for documentation.
 - `Res`: The expected response type (extends `http.BaseResponse`).
 
-#### Properties
-- `method`: HTTP method (e.g., 'GET', 'POST').
-- `path`: URL path template.
-- `query`: `Schema<Map<String, dynamic>>?` for query parameter validation.
-- `body`: `Schema<dynamic>?` for request body validation.
-- `headers`: `Schema<Map<String, dynamic>>?` for request header validation.
+#### Contract Builders
+- `HttpQuery<R>(path, query, headers)`: Defines a GET request.
+- `HttpCommand<R>(path, body, query, headers)`: Defines a POST (or other) request with a JSON body.
+- `HttpUpload<R>(path, query, headers)`: Defines a POST request for raw bytes.
 
----
-
-### Contract Subclasses
-
-#### `ObjectQuery<R>`, `ListQuery<R>`, `RawQuery<R>`
-- **Method**: Defaults to `GET`.
-- **Body**: Always `null`.
-
-#### `ObjectCommand<R>`, `ListCommand<R>`, `RawCommand<R>`
-- **Method**: Defaults to `POST`.
-- **Body**: Required `Schema<Map<String, dynamic>>`.
-
-#### `ObjectUpload<R>`, `ListUpload<R>`, `RawUpload<R>`
-- **Method**: Defaults to `POST`.
-- **Body**: Always `null` schema. Validation is the server's responsibility.
+#### Builder Methods
+- `.returnsMap()`: Returns `MapResponse<R>`.
+- `.returnsList()`: Returns `ListResponse<R>`.
+- `.returnsVoid()`: Returns `VoidResponse<R>`.
+- (Default): Returns `http.StreamedResponse`.
 
 ---
 
@@ -60,6 +48,9 @@ These are **zero-copy extension types** on `http.StreamedResponse`.
 
 ### `ListResponse<R>`
 - `Future<List<DataMap<R>>> json()`: Consumes the stream and returns a list of `DataMap` instances.
+
+### `VoidResponse<R>`
+- Represents an empty or ignored response body.
 
 ---
 

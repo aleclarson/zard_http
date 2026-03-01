@@ -24,6 +24,7 @@
 Extension types over `http.StreamedResponse`:
 - `MapResponse<R>.json()` -> `Future<DataMap<R>>`
 - `ListResponse<R>.json()` -> `Future<List<DataMap<R>>>`
+- `VoidResponse<R>` -> Represents no expected body.
 
 These wrappers preserve low overhead while providing ergonomic JSON extraction.
 

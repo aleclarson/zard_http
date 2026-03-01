@@ -2,44 +2,27 @@
 
 A model-less, contract-driven HTTP library for Dart. No code generation. Edge validation via Zard. Zero-copy performance.
 
-## 1. Contract Definitions
+## 1. Contracts
 
-Define endpoints as global singletons. Use `R` (phantom record type) for documentation.
+Define endpoints as global singletons using builder classes. Use `R` (phantom record type) for documentation.
 
-### Query Contracts (GET)
-- `ObjectQuery<R>`: Returns a single JSON object.
-- `ListQuery<R>`: Returns a JSON array.
-- `RawQuery<R>`: Returns `http.StreamedResponse`.
+### Contract Builders
+- `HttpQuery<R>(path, query, headers)`: GET request.
+- `HttpCommand<R>(path, body, query, headers)`: POST/PUT JSON request.
+- `HttpUpload<R>(path, query, headers)`: POST raw bytes request.
 
+### Builder Methods (Response Typing)
+- `.returnsMap()`: Expects a JSON object. Returns `MapResponse<R>`.
+- `.returnsList()`: Expects a JSON list. Returns `ListResponse<R>`.
+- `.returnsVoid()`: Returns `VoidResponse<R>`.
+- (No call): Returns raw `http.StreamedResponse`.
+
+### Examples
 ```dart
-final getProfile = ObjectQuery<({String id, String name})>(
-  path: '/profile',
-  headers: z.map({'x-user-id': z.string()}),
-);
-
-final listUsers = ListQuery<({String id, String name})>(
-  path: '/users',
-  query: z.map({'search': z.string().optional()}),
-);
-```
-
-### Command Contracts (POST/PUT/PATCH/DELETE)
-- Requires a `Schema<Map<String, dynamic>>` for the `body`.
-- `ObjectCommand<R>`, `ListCommand<R>`, `RawCommand<R>`.
-
-```dart
-final updateProfile = ObjectCommand<({String id, String name})>(
-  path: '/profile',
-  body: z.map({'name': z.string().min(2)}),
-);
-```
-
-### Upload Contracts (Raw Byte POST)
-- No body schema. Expects `Uint8List` on client, `Stream<List<int>>` on server.
-- `ObjectUpload<R>`, `ListUpload<R>`, `RawUpload<R>`.
-
-```dart
-final uploadAvatar = ObjectUpload<({String url})>(path: '/avatar');
+final getProfile = HttpQuery<({String id, String name})>(path: '/profile').returnsMap();
+final listUsers = HttpQuery<({String id, String name})>(path: '/users').returnsList();
+final updateAvatar = HttpUpload<({String url})>(path: '/avatar').returnsMap();
+final deleteAccount = HttpCommand<String>(path: '/account', body: z.map({})).returnsVoid();
 ```
 
 ---
@@ -58,6 +41,12 @@ Primary interface for model-less JSON extraction. Used in `request.body` (server
 - `parseEnumByName(key, UserRole.values)`: Safe enum mapping.
 - `parseBySchema(key, z.list(z.string()))`: Nested Zard validation.
 - *All have `Optional` variants: `parseDateTimeOptional`, etc.*
+
+### Response Wrappers
+- **Map Response**: `await response.json()` -> `DataMap<R>`
+- **List Response**: `await response.json()` -> `List<DataMap<R>>`
+- **Void Response**: No `json()` call; check `statusCode`.
+- **Raw Response**: Access `response.stream` directly.
 
 ---
 
@@ -79,7 +68,7 @@ final users = await res.json();
 final firstId = users.first.get<String>('id');
 
 // 3. Byte Upload
-await client.request(uploadAvatar, body: myUint8List);
+await client.request(updateAvatar, body: myUint8List);
 ```
 
 ---
@@ -104,7 +93,7 @@ router.addCommand(updateProfile, (request) async {
 });
 
 // 3. Upload (Byte POST) - Body is Stream
-router.addUpload(uploadAvatar, (request) async {
+router.addUpload(updateAvatar, (request) async {
   final bytes = await request.read().toBytes(); // Use toBytes() extension
   return Response.ok(jsonEncode({'url': 'https://cdn.com/a.png'}));
 });

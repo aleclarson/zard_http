@@ -10,24 +10,29 @@ import 'package:zard_http/shelf.dart';
 import 'package:http/http.dart' as http;
 
 // Contracts
-final createUser = ObjectCommand<({String id, String name, String email})>(
+final createUser = HttpCommand<({String id, String name, String email})>(
   path: '/users',
   body: z.map({
     'name': z.string(),
     'email': z.string().email(),
   }),
-);
+).returnsMap();
 
-final searchUsers = ListQuery<({String id, String name})>(
+final searchUsers = HttpQuery<({String id, String name})>(
   path: '/users',
   query: z.map({
     'search': z.string(),
   }),
-);
+).returnsList();
 
-final rawText = RawQuery<String>(path: '/raw');
+final rawText = HttpQuery<String>(path: '/raw');
 
-final uploadBytes = RawUpload<String>(path: '/upload');
+final uploadBytes = HttpUpload<String>(path: '/upload');
+
+final voidTest = HttpCommand<String>(
+  path: '/void',
+  body: z.map({}),
+).returnsVoid();
 
 enum UserRole { admin, member }
 
@@ -75,6 +80,10 @@ void main() {
       router.addUpload(uploadBytes, (request) async {
         final bytes = await request.read().toBytes();
         return Response.ok('Received ${bytes.length} bytes');
+      });
+
+      router.addCommand(voidTest, (request) async {
+        return Response(204);
       });
 
       server = await shelf_io.serve(router, 'localhost', 0);
@@ -148,6 +157,11 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(await response.stream.bytesToString(), 'Received 5 bytes');
+    });
+
+    test('VoidCommand works', () async {
+      final response = await client.request(voidTest, body: {});
+      expect(response.statusCode, 204);
     });
 
     test('Validation fails on client', () async {

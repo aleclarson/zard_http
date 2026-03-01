@@ -13,33 +13,35 @@ Base type: `HttpContract<R, Res extends http.BaseResponse>`.
 ## Type Parameters
 
 - `R`: phantom documentation type (commonly a record type) for payload shape intent.
-- `Res`: response category at call sites (`MapResponse`, `ListResponse`, or raw `StreamedResponse`).
+- `Res`: response category at call sites (`MapResponse`, `ListResponse`, `VoidResponse`, or raw `StreamedResponse`).
 
 ## Contract Families
 
-### Query Contracts
-- `ObjectQuery<R>`
-- `ListQuery<R>`
-- `RawQuery<R>`
+Contracts are defined using base builders that can be specialized for response types.
 
-Default method: `GET`.
-No request body schema.
+### 1. `HttpQuery<R>`
+- Purpose: `GET` requests.
+- Body: Always `null`.
+- Default Response: `http.StreamedResponse`.
 
-### Command Contracts
-- `ObjectCommand<R>`
-- `ListCommand<R>`
-- `RawCommand<R>`
+### 2. `HttpCommand<R>`
+- Purpose: `POST`/`PUT` requests with JSON bodies.
+- Body: Required `Schema<Map<String, dynamic>>`.
+- Default Response: `http.StreamedResponse`.
 
-Default method: `POST` (override allowed).
-Require a JSON-map `body` schema.
+### 3. `HttpUpload<R>`
+- Purpose: `POST` requests with raw byte bodies.
+- Body: Always `null` (server handles raw bytes).
+- Default Response: `http.StreamedResponse`.
 
-### Upload Contracts
-- `ObjectUpload<R>`
-- `ListUpload<R>`
-- `RawUpload<R>`
+## Builder Methods
 
-Default method: `POST` (override allowed).
-No body schema; intended for raw byte streams.
+Each builder can be specialized:
+- `.returnsMap()`: Returns `MapQuery<R>`, `MapCommand<R>`, or `MapUpload<R>`.
+- `.returnsList()`: Returns `ListQuery<R>`, `ListCommand<R>`, or `ListUpload<R>`.
+- `.returnsVoid()`: Returns `VoidQuery<R>`, `VoidCommand<R>`, or `VoidUpload<R>`.
+
+---
 
 ## Contract Authoring Rules
 

@@ -19,12 +19,12 @@ import 'package:zard/zard.dart';
 import 'package:zard_http/zard_http.dart';
 
 // R = ({String id, String name})
-final createUser = ObjectCommand<({String id, String name})>(
+final createUser = HttpCommand<({String id, String name})>(
   path: '/users',
   body: z.map({
     'name': z.string(),
   }),
-);
+).returnsMap();
 ```
 
 ### 2. Client Usage
@@ -59,7 +59,7 @@ router.addCommand(createUser, (request) async {
 ### 4. Upload Usage
 ```dart
 // 1. Define Upload Contract
-final uploadImage = RawUpload<String>(path: '/upload');
+final uploadImage = HttpUpload<String>(path: '/upload');
 
 // 2. Client
 await client.request(uploadImage, body: myImageBytes);

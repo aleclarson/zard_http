@@ -73,20 +73,24 @@ class HttpContractClient implements ContractClient {
     final response = await _client.send(request);
 
     // 4. Wrap Response
-    if (contract is RawQuery<R> ||
-        contract is RawCommand<R> ||
-        contract is RawUpload<R>) {
+    if (contract is HttpQuery<R> ||
+        contract is HttpCommand<R> ||
+        contract is HttpUpload<R>) {
       return response as Res;
     }
 
-    if (contract is ObjectQuery<R> ||
-        contract is ObjectCommand<R> ||
-        contract is ObjectUpload<R>) {
+    if (contract is MapQuery<R> ||
+        contract is MapCommand<R> ||
+        contract is MapUpload<R>) {
       return MapResponse<R>(response) as Res;
     } else if (contract is ListQuery<R> ||
         contract is ListCommand<R> ||
         contract is ListUpload<R>) {
       return ListResponse<R>(response) as Res;
+    } else if (contract is VoidQuery<R> ||
+        contract is VoidCommand<R> ||
+        contract is VoidUpload<R>) {
+      return VoidResponse<R>(response) as Res;
     }
 
     throw Exception('Unknown contract type: $Res');

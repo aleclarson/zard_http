@@ -137,3 +137,7 @@ extension type ListResponse<R>(http.StreamedResponse _response)
         .toList();
   }
 }
+
+/// Zero-copy extension type for [http.StreamedResponse] to represent a void response.
+extension type VoidResponse<R>(http.StreamedResponse _response)
+    implements http.BaseResponse {}
