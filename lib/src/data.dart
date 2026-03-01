@@ -88,6 +88,21 @@ extension ObjectDataExtension<R> on ObjectData<R> {
   }
 }
 
+/// Model-less data accessor for queries.
+abstract class QueryRequest<R> {
+  ObjectData<R>? get query;
+  Map<String, String> get headers;
+}
+
+/// Model-less data accessor for commands.
+abstract class CommandRequest<R> extends QueryRequest<R> {
+  @override
+  ObjectData<R>? get query;
+  @override
+  Map<String, String> get headers;
+  ObjectData<R> get body;
+}
+
 /// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction.
 extension type ObjectResponse<R>(http.StreamedResponse _response) implements http.BaseResponse {
   Future<ObjectData<R>> json() async {

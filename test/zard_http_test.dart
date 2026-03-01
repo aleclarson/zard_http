@@ -39,8 +39,8 @@ void main() {
       router = Router();
 
       router.addCommand(createUser, (request) async {
-        final name = request.body!.get<String>('name');
-        final email = request.body!.get<String>('email');
+        final name = request.body.get<String>('name');
+        final email = request.body.get<String>('email');
 
         return Response(201,
             headers: {'Content-Type': 'application/json'},
@@ -65,7 +65,7 @@ void main() {
             headers: {'Content-Type': 'application/json'});
       });
 
-      router.add(rawText.method, rawText.path, (request) async {
+      router.addQuery(rawText, (request) async {
         return Response.ok('Plain text response');
       });
 

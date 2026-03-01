@@ -9,11 +9,11 @@ import 'data.dart';
 extension ContractRouter on Router {
   void addCommand<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract,
-    Future<Response> Function(ContractRequest<R>) handler,
+    Future<Response> Function(CommandRequest<R>) handler,
   ) {
     add(contract.method, contract.path, (Request shelfRequest) async {
       try {
-        final contractRequest = await ContractRequest.fromShelfRequest<R, Res>(shelfRequest, contract);
+        final contractRequest = await ShelfCommandRequest.fromShelfRequest<R, Res>(shelfRequest, contract);
         return await handler(contractRequest);
       } on ZardError catch (e) {
         return Response(400,
@@ -27,29 +27,82 @@ extension ContractRouter on Router {
 
   void addQuery<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract,
-    Future<Response> Function(ContractRequest<R>) handler,
-  ) =>
-      addCommand(contract, handler);
+    Future<Response> Function(QueryRequest<R>) handler,
+  ) {
+    add(contract.method, contract.path, (Request shelfRequest) async {
+      try {
+        final contractRequest = await ShelfQueryRequest.fromShelfRequest<R, Res>(shelfRequest, contract);
+        return await handler(contractRequest);
+      } on ZardError catch (e) {
+        return Response(400,
+            body: jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
+            headers: {'Content-Type': 'application/json'});
+      } catch (e) {
+        return Response.internalServerError(body: e.toString());
+      }
+    });
+  }
 }
 
-class ContractRequest<R> {
+class ShelfQueryRequest<R> implements QueryRequest<R> {
   final Request shelfRequest;
+  @override
   final ObjectData<R>? query;
-  final ObjectData<R>? body;
+  @override
   final Map<String, String> headers;
 
-  ContractRequest({
+  ShelfQueryRequest({
     required this.shelfRequest,
     this.query,
-    this.body,
     required this.headers,
   });
 
-  static Future<ContractRequest<R>> fromShelfRequest<R, Res extends http.BaseResponse>(
+  static Future<ShelfQueryRequest<R>> fromShelfRequest<R, Res extends http.BaseResponse>(
     Request shelfRequest,
     HttpContract<R, Res> contract,
   ) async {
+    // Validate Headers
+    final headers = shelfRequest.headers;
+    if (contract.headers != null) {
+      contract.headers!.parse(headers);
+    }
 
+    // Validate Query
+    ObjectData<R>? queryData;
+    if (contract.query != null) {
+      final queryParams = shelfRequest.url.queryParameters;
+      final parsedQuery = contract.query!.parse(queryParams);
+      queryData = ObjectData<R>(parsedQuery as Map<String, dynamic>);
+    }
+
+    return ShelfQueryRequest<R>(
+      shelfRequest: shelfRequest,
+      query: queryData,
+      headers: headers,
+    );
+  }
+}
+
+class ShelfCommandRequest<R> implements CommandRequest<R> {
+  final Request shelfRequest;
+  @override
+  final ObjectData<R>? query;
+  @override
+  final Map<String, String> headers;
+  @override
+  final ObjectData<R> body;
+
+  ShelfCommandRequest({
+    required this.shelfRequest,
+    this.query,
+    required this.headers,
+    required this.body,
+  });
+
+  static Future<ShelfCommandRequest<R>> fromShelfRequest<R, Res extends http.BaseResponse>(
+    Request shelfRequest,
+    HttpContract<R, Res> contract,
+  ) async {
     // Validate Headers
     final headers = shelfRequest.headers;
     if (contract.headers != null) {
@@ -65,19 +118,16 @@ class ContractRequest<R> {
     }
 
     // Validate Body
-    ObjectData<R>? bodyData;
-    if (contract.body != null) {
-      final bodyText = await shelfRequest.readAsString();
-      final decodedBody = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
-      final parsedBody = contract.body!.parse(decodedBody ?? <String, dynamic>{});
-      bodyData = ObjectData<R>(parsedBody as Map<String, dynamic>);
-    }
+    final bodyText = await shelfRequest.readAsString();
+    final decodedBody = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
+    final parsedBody = (contract.body ?? z.map({})).parse(decodedBody ?? <String, dynamic>{});
+    final bodyData = ObjectData<R>(parsedBody as Map<String, dynamic>);
 
-    return ContractRequest<R>(
+    return ShelfCommandRequest<R>(
       shelfRequest: shelfRequest,
       query: queryData,
-      body: bodyData,
       headers: headers,
+      body: bodyData,
     );
   }
 }
