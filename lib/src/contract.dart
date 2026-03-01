@@ -18,7 +18,7 @@ abstract class HttpContract<R, Res extends http.BaseResponse> {
   });
 }
 
-class ObjectQuery<R> extends HttpContract<R, ObjectResponse<R>> {
+class ObjectQuery<R> extends HttpContract<R, MapResponse<R>> {
   ObjectQuery({
     required super.path,
     super.query,
@@ -42,7 +42,7 @@ class RawQuery<R> extends HttpContract<R, http.StreamedResponse> {
   }) : super(method: 'GET');
 }
 
-class ObjectCommand<R> extends HttpContract<R, ObjectResponse<R>> {
+class ObjectCommand<R> extends HttpContract<R, MapResponse<R>> {
   ObjectCommand({
     String method = 'POST',
     required super.path,
@@ -72,7 +72,7 @@ class RawCommand<R> extends HttpContract<R, http.StreamedResponse> {
   }) : super(method: method, body: body);
 }
 
-class ObjectUpload<R> extends HttpContract<R, ObjectResponse<R>> {
+class ObjectUpload<R> extends HttpContract<R, MapResponse<R>> {
   ObjectUpload({
     String method = 'POST',
     required super.path,

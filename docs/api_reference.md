@@ -55,7 +55,7 @@ The core class for model-less data extraction from JSON maps.
 
 These are **zero-copy extension types** on `http.StreamedResponse`.
 
-### `ObjectResponse<R>`
+### `MapResponse<R>`
 - `Future<DataMap<R>> json()`: Consumes the stream and returns an `DataMap` instance.
 
 ### `ListResponse<R>`

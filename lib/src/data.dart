@@ -119,7 +119,7 @@ abstract class UploadRequest<R> extends QueryRequest<R> {
 }
 
 /// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction.
-extension type ObjectResponse<R>(http.StreamedResponse _response)
+extension type MapResponse<R>(http.StreamedResponse _response)
     implements http.BaseResponse {
   Future<DataMap<R>> json() async {
     final body = await _response.stream.bytesToString();

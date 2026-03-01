@@ -19,7 +19,7 @@ Primary API: `HttpContractClient.request(contract, {query, body, headers})`.
    - Send via internal `http.Client.send`.
 5. **Response wrapping**
    - Raw contracts return `http.StreamedResponse`.
-   - Object contracts return `ObjectResponse<R>`.
+   - Object contracts return `MapResponse<R>`.
    - List contracts return `ListResponse<R>`.
 
 ## Behavioral Guarantees

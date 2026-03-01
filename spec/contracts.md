@@ -13,7 +13,7 @@ Base type: `HttpContract<R, Res extends http.BaseResponse>`.
 ## Type Parameters
 
 - `R`: phantom documentation type (commonly a record type) for payload shape intent.
-- `Res`: response category at call sites (`ObjectResponse`, `ListResponse`, or raw `StreamedResponse`).
+- `Res`: response category at call sites (`MapResponse`, `ListResponse`, or raw `StreamedResponse`).
 
 ## Contract Families
 

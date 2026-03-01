@@ -6,7 +6,7 @@ import 'contract.dart';
 
 abstract class ContractClient {
   /// Executes the request. The generic [Res] seamlessly ensures that passing
-  /// an `ObjectCommand` returns an `ObjectResponse`, etc.
+  /// an `ObjectCommand` returns an `MapResponse`, etc.
   Future<Res> request<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract, {
     Map<String, dynamic>? query,
@@ -82,7 +82,7 @@ class HttpContractClient implements ContractClient {
     if (contract is ObjectQuery<R> ||
         contract is ObjectCommand<R> ||
         contract is ObjectUpload<R>) {
-      return ObjectResponse<R>(response) as Res;
+      return MapResponse<R>(response) as Res;
     } else if (contract is ListQuery<R> ||
         contract is ListCommand<R> ||
         contract is ListUpload<R>) {

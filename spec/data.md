@@ -22,7 +22,7 @@
 ## Response Wrappers
 
 Extension types over `http.StreamedResponse`:
-- `ObjectResponse<R>.json()` -> `Future<DataMap<R>>`
+- `MapResponse<R>.json()` -> `Future<DataMap<R>>`
 - `ListResponse<R>.json()` -> `Future<List<DataMap<R>>>`
 
 These wrappers preserve low overhead while providing ergonomic JSON extraction.
