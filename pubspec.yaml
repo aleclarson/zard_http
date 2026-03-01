@@ -8,3 +8,8 @@ environment:
 
 dev_dependencies:
   test: ^1.24.0
+dependencies:
+  http: ^1.6.0
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4
+  zard: ^0.0.26
