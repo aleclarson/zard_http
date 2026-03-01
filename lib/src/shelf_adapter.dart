@@ -61,7 +61,7 @@ class ContractRequest<R> {
     if (contract.query != null) {
       final queryParams = shelfRequest.url.queryParameters;
       final parsedQuery = contract.query!.parse(queryParams);
-      queryData = MapObjectData<R>(parsedQuery as Map<String, dynamic>);
+      queryData = ObjectData<R>(parsedQuery as Map<String, dynamic>);
     }
 
     // Validate Body
@@ -70,7 +70,7 @@ class ContractRequest<R> {
       final bodyText = await shelfRequest.readAsString();
       final decodedBody = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
       final parsedBody = contract.body!.parse(decodedBody ?? <String, dynamic>{});
-      bodyData = MapObjectData<R>(parsedBody as Map<String, dynamic>);
+      bodyData = ObjectData<R>(parsedBody as Map<String, dynamic>);
     }
 
     return ContractRequest<R>(

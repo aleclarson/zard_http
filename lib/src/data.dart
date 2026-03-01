@@ -1,19 +1,44 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:zard/zard.dart';
 
 /// Model-less data accessor.
 /// Shared by the server's incoming request bodies/queries, and the client's outgoing responses.
-abstract interface class ObjectData<R> {
+class ObjectData<R> {
+  final Map<String, dynamic> _data;
+
+  ObjectData(this._data);
+
   /// Strictly extracts a value of type [T]. Throws if missing or wrong type.
-  T get<T>(String key);
+  T get<T>(String key) {
+    final value = _data[key];
+    if (value == null && !_data.containsKey(key)) {
+      throw Exception('Key "$key" not found in data');
+    }
+    if (value is! T) {
+      throw Exception('Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
+    }
+    return value;
+  }
 
   /// Extracts an optional value of type [T]. Returns null if missing.
-  T? getOptional<T>(String key);
+  T? getOptional<T>(String key) {
+    final value = _data[key];
+    if (value == null) return null;
+    if (value is! T) {
+      throw Exception('Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
+    }
+    return value;
+  }
 
   /// Parses complex data using a custom [parser] function.
-  T parse<T, RAW>(String key, T Function(RAW) parser);
+  T parse<T, RAW>(String key, T Function(RAW) parser) {
+    final value = get<RAW>(key);
+    return parser(value);
+  }
+
+  @override
+  String toString() => _data.toString();
 }
 
 extension ObjectDataExtension<R> on ObjectData<R> {
@@ -63,53 +88,16 @@ extension ObjectDataExtension<R> on ObjectData<R> {
   }
 }
 
-class MapObjectData<R> implements ObjectData<R> {
-  final Map<String, dynamic> _data;
-
-  MapObjectData(this._data);
-
-  @override
-  T get<T>(String key) {
-    final value = _data[key];
-    if (value == null && !_data.containsKey(key)) {
-      throw Exception('Key "$key" not found in data');
-    }
-    if (value is! T) {
-      throw Exception('Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
-    }
-    return value;
-  }
-
-  @override
-  T? getOptional<T>(String key) {
-    final value = _data[key];
-    if (value == null) return null;
-    if (value is! T) {
-      throw Exception('Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
-    }
-    return value;
-  }
-
-  @override
-  T parse<T, RAW>(String key, T Function(RAW) parser) {
-    final value = get<RAW>(key);
-    return parser(value);
-  }
-
-  @override
-  String toString() => _data.toString();
-}
-
 /// Zero-copy extension type for [http.Response] to add model-less extraction.
 extension type ObjectResponse<R>(http.Response _response) implements http.BaseResponse {
   Map<String, dynamic> get _json => jsonDecode(_response.body);
 
-  T get<T>(String key) => MapObjectData<R>(_json).get<T>(key);
+  T get<T>(String key) => ObjectData<R>(_json).get<T>(key);
 
-  T? getOptional<T>(String key) => MapObjectData<R>(_json).getOptional<T>(key);
+  T? getOptional<T>(String key) => ObjectData<R>(_json).getOptional<T>(key);
 
   T parse<T, RAW>(String key, T Function(RAW) parser) =>
-      MapObjectData<R>(_json).parse<T, RAW>(key, parser);
+      ObjectData<R>(_json).parse<T, RAW>(key, parser);
 }
 
 extension ObjectResponseExtension<R> on ObjectResponse<R> {
@@ -164,5 +152,5 @@ extension type ListResponse<R>(http.Response _response) implements http.BaseResp
   List<dynamic> get _json => jsonDecode(_response.body);
 
   List<ObjectData<R>> toList() =>
-      _json.map((i) => MapObjectData<R>(i as Map<String, dynamic>)).toList();
+      _json.map((i) => ObjectData<R>(i as Map<String, dynamic>)).toList();
 }
