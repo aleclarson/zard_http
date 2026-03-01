@@ -27,6 +27,7 @@ See:
 - [Client Semantics](./client.md)
 - [Server Adapter Semantics](./server.md)
 - [Data Access Semantics](./data.md)
+- [Roadmap (Inferred)](./roadmap.md)
 
 ## Non-Goals
 
