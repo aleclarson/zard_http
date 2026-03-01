@@ -5,11 +5,7 @@ import 'package:zard/zard.dart';
 
 /// Model-less data accessor.
 /// Shared by the server's incoming request bodies/queries, and the client's outgoing responses.
-class ObjectData<R> {
-  final Map<String, dynamic> _data;
-
-  ObjectData(this._data);
-
+extension type ObjectData<R>(Map<String, dynamic> _data) {
   /// Strictly extracts a value of type [T]. Throws if missing or wrong type.
   T get<T>(String key) {
     final value = _data[key];
@@ -40,11 +36,6 @@ class ObjectData<R> {
     return parser(value);
   }
 
-  @override
-  String toString() => _data.toString();
-}
-
-extension ObjectDataExtension<R> on ObjectData<R> {
   /// Parses complex data using a [Schema].
   T parseBySchema<T, RAW>(String key, Schema<T> schema) =>
       parse<T, RAW>(key, schema.parse);
@@ -132,7 +123,7 @@ extension type ObjectResponse<R>(http.StreamedResponse _response)
     implements http.BaseResponse {
   Future<ObjectData<R>> json() async {
     final body = await _response.stream.bytesToString();
-    return ObjectData<R>(jsonDecode(body));
+    return ObjectData<R>(jsonDecode(body) as Map<String, dynamic>);
   }
 }
 
