@@ -1,4 +1,6 @@
 import 'dart:collection';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:zard/zard.dart';
 
 /// Model-less data accessor.
@@ -107,6 +109,31 @@ abstract class ObjectResponse<R> extends BaseResponse<R> implements ObjectData<R
 
 abstract class ListResponse<R> extends BaseResponse<R> with IterableMixin<ObjectData<R>> {}
 
+class RawResponse<R> extends BaseResponse<R> {
+  @override
+  final int status;
+  @override
+  final Map<String, String> headers;
+  final Stream<List<int>> stream;
+
+  RawResponse(this.status, this.headers, this.stream);
+
+  Future<Uint8List> readAsBytes() async {
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in stream) {
+      builder.add(chunk);
+    }
+    return builder.takeBytes();
+  }
+
+  Future<String> readAsString({Encoding encoding = utf8}) async {
+    return encoding.decode(await readAsBytes());
+  }
+
+  @override
+  String toString() => 'RawResponse($status)';
+}
+
 class MapObjectResponse<R> extends ObjectResponse<R> {
   @override
   final int status;
@@ -124,8 +151,7 @@ class MapObjectResponse<R> extends ObjectResponse<R> {
   T? getOptional<T>(String key) => _data.getOptional<T>(key);
 
   @override
-  T parse<T, RAW>(String key, T Function(RAW) parser) =>
-      _data.parse<T, RAW>(key, parser);
+  T parse<T, RAW>(String key, T Function(RAW) parser) => _data.parse<T, RAW>(key, parser);
 
   @override
   String toString() => 'ObjectResponse($status, $_data)';

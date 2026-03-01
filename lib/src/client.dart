@@ -63,10 +63,20 @@ class HttpContractClient implements ContractClient {
 
     // 3. Send
     final response = await _client.send(request);
-    final responseBody = await response.stream.bytesToString();
-    final decoded = responseBody.isNotEmpty ? jsonDecode(responseBody) : null;
 
     // 4. Wrap Response
+    if (contract is RawQuery<R> || contract is RawCommand<R>) {
+      return RawResponse<R>(
+        response.statusCode,
+        response.headers,
+        response.stream,
+      ) as Res;
+    }
+
+    final responseBytes = await response.stream.toBytes();
+    final responseBody = utf8.decode(responseBytes);
+    final decoded = responseBody.isNotEmpty ? jsonDecode(responseBody) : null;
+
     if (contract is ObjectQuery<R> || contract is ObjectCommand<R>) {
       return MapObjectResponse<R>(
         response.statusCode,

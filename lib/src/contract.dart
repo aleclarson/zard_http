@@ -33,6 +33,14 @@ class ListQuery<R> extends HttpContract<R, ListResponse<R>> {
   }) : super(method: 'GET');
 }
 
+class RawQuery<R> extends HttpContract<R, RawResponse<R>> {
+  RawQuery({
+    required super.path,
+    super.query,
+    super.headers,
+  }) : super(method: 'GET');
+}
+
 class ObjectCommand<R> extends HttpContract<R, ObjectResponse<R>> {
   ObjectCommand({
     String method = 'POST',
@@ -45,6 +53,16 @@ class ObjectCommand<R> extends HttpContract<R, ObjectResponse<R>> {
 
 class ListCommand<R> extends HttpContract<R, ListResponse<R>> {
   ListCommand({
+    String method = 'POST',
+    required super.path,
+    super.query,
+    super.body,
+    super.headers,
+  }) : super(method: method);
+}
+
+class RawCommand<R> extends HttpContract<R, RawResponse<R>> {
+  RawCommand({
     String method = 'POST',
     required super.path,
     super.query,

@@ -24,6 +24,8 @@ final searchUsers = ListQuery<({String id, String name})>(
   }),
 );
 
+final rawText = RawQuery<String>(path: '/raw');
+
 enum UserRole { admin, member }
 
 void main() {
@@ -61,6 +63,10 @@ void main() {
               {'id': '2', 'name': 'User 2 with $search'},
             ]),
             headers: {'Content-Type': 'application/json'});
+      });
+
+      router.add(rawText.method, rawText.path, (request) async {
+        return Response.ok('Plain text response');
       });
 
       server = await shelf_io.serve(router, 'localhost', 0);
@@ -116,6 +122,13 @@ void main() {
       final list = response.toList();
       expect(list.length, 2);
       expect(list[0].get<String>('name'), contains('test'));
+    });
+
+    test('RawQuery works', () async {
+      final response = await client.request(rawText);
+
+      expect(response.status, 200);
+      expect(await response.readAsString(), 'Plain text response');
     });
 
     test('Validation fails on client', () async {
