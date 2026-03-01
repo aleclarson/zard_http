@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 // Contracts
 final createUser = ObjectCommand<({String id, String name, String email})>(
   path: '/users',
-  body: z.object({
+  body: z.map({
     'name': z.string(),
     'email': z.string().email(),
   }),
@@ -19,7 +19,7 @@ final createUser = ObjectCommand<({String id, String name, String email})>(
 
 final searchUsers = ListQuery<({String id, String name})>(
   path: '/users',
-  query: z.object({
+  query: z.map({
     'search': z.string(),
   }),
 );
@@ -91,7 +91,7 @@ void main() {
       expect(updatedAt.year, 2023);
       expect(updatedAt.millisecondsSinceEpoch, 1672574400000);
 
-      final tags = response.parseBySchema<List<dynamic>, List<dynamic>>('tags', z.array(z.string()));
+      final tags = response.parseBySchema<List<dynamic>, List<dynamic>>('tags', z.list(z.string()));
       expect(tags, contains('dart'));
 
       final role = response.parseEnumByName('role', UserRole.values);
@@ -100,8 +100,8 @@ void main() {
       // Test optional variants
       expect(response.parseDateTimeOptional('created_at'), isNotNull);
       expect(response.parseDateTimeOptional('missing'), isNull);
-      expect(response.parseBySchemaOptional('tags', z.array(z.string())), isNotNull);
-      expect(response.parseBySchemaOptional('missing', z.array(z.string())), isNull);
+      expect(response.parseBySchemaOptional('tags', z.list(z.string())), isNotNull);
+      expect(response.parseBySchemaOptional('missing', z.list(z.string())), isNull);
       expect(response.parseEnumByNameOptional('role', UserRole.values), UserRole.admin);
       expect(response.parseEnumByNameOptional('missing', UserRole.values), isNull);
     });

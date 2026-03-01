@@ -1,11 +1,5 @@
 import 'package:zard/zard.dart';
-import 'package:zard/src/zard_base.dart';
 import 'data.dart';
-
-extension ZardObjectExtension on Zard {
-  ZMap object(Map<String, Schema> schema, {String? message}) => map(schema, message: message);
-  ZList array(Schema itemSchema, {String? message}) => list(itemSchema, message: message);
-}
 
 abstract class HttpContract<R, Res extends BaseResponse<R>> {
   final String method;
