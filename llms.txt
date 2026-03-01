@@ -1,39 +1,121 @@
 # Zard HTTP - AI Reference
 
-A model-less, contract-driven HTTP library for Dart focused on rapid development and edge validation.
+A model-less, contract-driven HTTP library for Dart. No code generation. Edge validation via Zard. Zero-copy performance.
 
-## Core Concepts
+## 1. Contract Definitions
 
-### 1. Singleton Contracts
-Define endpoints as global singletons using one of these classes:
-- `ObjectQuery<R>` / `ObjectCommand<R>` / `ObjectUpload<R>`: For single JSON objects.
-- `ListQuery<R>` / `ListCommand<R>` / `ListUpload<R>`: For arrays of JSON objects.
-- `RawQuery<R>` / `RawCommand<R>` / `RawUpload<R>`: For plain HTTP responses (StreamedResponse).
+Define endpoints as global singletons. Use `R` (phantom record type) for documentation.
 
-**Key Rules:**
-- `R` is a phantom record type used strictly for documentation and AI reasoning.
-- `body` is **required** for all Command types.
-- `Command` types require a `Map<String, dynamic>` body schema.
-- `Upload` types require a `Uint8List` request body, but have **no body schema**. Validation is the handler's responsibility.
-- `method` defaults to 'GET' for Queries and 'POST' for Commands/Uploads.
+### Query Contracts (GET)
+- `ObjectQuery<R>`: Returns a single JSON object.
+- `ListQuery<R>`: Returns a JSON array.
+- `RawQuery<R>`: Returns `http.StreamedResponse`.
 
-### 2. Validation Philosophy
-- **Request Data:** Validated twice. Once on the client (pre-flight) and once on the server (ingestion).
-- **Response Data:** Validation occurs at runtime when you extract values via the `ObjectData` interface.
+```dart
+final getProfile = ObjectQuery<({String id, String name})>(
+  path: '/profile',
+  headers: z.map({'x-user-id': z.string()}),
+);
 
-### 3. Model-less Data Access (`ObjectData`)
-`ObjectData` is the primary interface for reading JSON. It is used by server requests (`request.body` for Commands) and client responses (`await response.json()`).
+final listUsers = ListQuery<({String id, String name})>(
+  path: '/users',
+  query: z.map({'search': z.string().optional()}),
+);
+```
 
-### 4. Client API (`HttpContractClient`)
-`request(contract, ...)` returns the appropriate response type (e.g. `ObjectResponse<R>`).
+### Command Contracts (POST/PUT/PATCH/DELETE)
+- Requires a `Schema<Map<String, dynamic>>` for the `body`.
+- `ObjectCommand<R>`, `ListCommand<R>`, `RawCommand<R>`.
 
-### 5. Server API (Shelf Adapter)
+```dart
+final updateProfile = ObjectCommand<({String id, String name})>(
+  path: '/profile',
+  body: z.map({'name': z.string().min(2)}),
+);
+```
+
+### Upload Contracts (Raw Byte POST)
+- No body schema. Expects `Uint8List` on client, `Stream<List<int>>` on server.
+- `ObjectUpload<R>`, `ListUpload<R>`, `RawUpload<R>`.
+
+```dart
+final uploadAvatar = ObjectUpload<({String url})>(path: '/avatar');
+```
+
+---
+
+## 2. Data Access (`ObjectData`)
+
+Primary interface for model-less JSON extraction. Used in `request.body` (server) and `response.json()` (client).
+
+### Core Accessors
+- `get<T>(key)`: Strict. Throws if missing/wrong type.
+- `getOptional<T>(key)`: Returns `null` if missing.
+- `parse<T, RAW>(key, T Function(RAW) parser)`: Manual mapping.
+
+### Extensions (Recommended)
+- `parseDateTime(key)`: Handles ISO 8601 strings and integer epoch ms.
+- `parseEnumByName(key, UserRole.values)`: Safe enum mapping.
+- `parseBySchema(key, z.list(z.string()))`: Nested Zard validation.
+- *All have `Optional` variants: `parseDateTimeOptional`, etc.*
+
+---
+
+## 3. Client Usage (`HttpContractClient`)
+
+```dart
+final client = HttpContractClient('https://api.test.com');
+
+// 1. JSON Request
+final response = await client.request(getProfile);
+if (response.statusCode == 200) {
+  final data = await response.json(); // Consumes stream
+  final name = data.get<String>('name');
+}
+
+// 2. List Request
+final res = await client.request(listUsers, query: {'search': 'alec'});
+final users = await res.json();
+final firstId = users.first.get<String>('id');
+
+// 3. Byte Upload
+await client.request(uploadAvatar, body: myUint8List);
+```
+
+---
+
+## 4. Server Usage (Shelf Adapter)
+
 Import `package:zard_http/shelf.dart`.
-- `router.addQuery(contract, handler)`: Provides `QueryRequest<R>`.
-- `router.addCommand(contract, handler)`: Provides `CommandRequest<R>` (`body` is `ObjectData`).
-- `router.addUpload(contract, handler)`: Provides `UploadRequest<R>` (`body` is accessed via `read()` stream).
+
+```dart
+final router = Router();
+
+// 1. Query (GET)
+router.addQuery(getProfile, (request) async {
+  final userId = request.headers['x-user-id']!;
+  return Response.ok(jsonEncode({'id': userId, 'name': 'Alec'}));
+});
+
+// 2. Command (JSON POST) - Body is ObjectData
+router.addCommand(updateProfile, (request) async {
+  final name = request.body.get<String>('name');
+  return Response.ok(jsonEncode({'id': '1', 'name': name}));
+});
+
+// 3. Upload (Byte POST) - Body is Stream
+router.addUpload(uploadAvatar, (request) async {
+  final bytes = await request.read().toBytes(); // Use toBytes() extension
+  return Response.ok(jsonEncode({'url': 'https://cdn.com/a.png'}));
+});
+```
+
+---
 
 ## Usage Guidelines for AI Agents
 
-1. **Avoid Data Classes:** Use `ObjectData` accessors directly.
-2. **Contract Selection:** Use `Upload` contracts for file/byte transfers and `Command` for JSON APIs.
+1. **Model-less is the Default:** Do not create `User`, `Profile`, or `Settings` classes. Access values directly via `ObjectData` in handlers, logic, and UI.
+2. **Edge Validation:** Always define strict schemas in contracts. If a handler is called, the data is guaranteed valid.
+3. **Async Responses:** Always `await response.json()` on the client. The stream is only consumed once.
+4. **Phantom Types:** Provide descriptive record types for `R` in contract definitions to improve reasoning and documentation.
+5. **Enums:** Prefer `parseEnumByName` over manual string comparisons.
