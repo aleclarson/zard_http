@@ -5,7 +5,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:test/test.dart';
 import 'package:zard/zard.dart';
-import 'package:zard_http/zard_http.dart';
 import 'package:zard_http/shelf.dart';
 import 'package:http/http.dart' as http;
 
