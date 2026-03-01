@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:zard/zard.dart';
 
@@ -88,6 +89,17 @@ extension ObjectDataExtension<R> on ObjectData<R> {
   }
 }
 
+extension ByteStreamExtension on Stream<List<int>> {
+  /// Consumes the stream and returns a [Uint8List].
+  Future<Uint8List> toBytes() async {
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in this) {
+      builder.add(chunk);
+    }
+    return builder.takeBytes();
+  }
+}
+
 /// Model-less data accessor for queries.
 abstract class QueryRequest<R> {
   ObjectData<R>? get query;
@@ -101,6 +113,15 @@ abstract class CommandRequest<R> extends QueryRequest<R> {
   @override
   Map<String, String> get headers;
   ObjectData<R> get body;
+}
+
+/// Data accessor for byte-based uploads.
+abstract class UploadRequest<R> extends QueryRequest<R> {
+  @override
+  ObjectData<R>? get query;
+  @override
+  Map<String, String> get headers;
+  Stream<List<int>> read();
 }
 
 /// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction.

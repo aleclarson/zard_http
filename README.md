@@ -5,7 +5,7 @@ Lightning-fast, boilerplate-free HTTP networking for Dart. Designed for AI syner
 ## Features
 - **Pure Model-less Data:** JSON is kept as `Map<String, dynamic>`. No code generation or `fromJson`/`toJson` boilerplate.
 - **Edge Validation:** Every request is strictly validated at the network boundary (client-side pre-flight and server-side ingestion) using [Zard](https://pub.dev/packages/zard).
-- **CQRS Contracts:** API boundaries are defined as singleton contracts, separating Queries (GET) from Commands (POST/PUT/PATCH/DELETE).
+- **CQRS Contracts:** API boundaries are defined as singleton contracts, separating Queries (GET), Commands (JSON POST), and Uploads (Byte POST).
 - **Zero-Copy Performance:** Response wrappers are implemented as **extension types** on `http.StreamedResponse` for maximum efficiency.
 - **Framework Agnostic:** The core library works in any environment; includes a first-class Shelf adapter.
 
@@ -51,6 +51,22 @@ router.addCommand(createUser, (request) async {
     'id': '123',
     'name': name,
   }));
+});
+```
+
+### 4. Upload Usage
+```dart
+// 1. Define Upload Contract
+final uploadImage = RawUpload<String>(path: '/upload');
+
+// 2. Client
+await client.request(uploadImage, body: myImageBytes);
+
+// 3. Server
+router.addUpload(uploadImage, (request) async {
+  final bytes = await request.read().toBytes(); // Use helper or stream manually
+  // Validation is handler's responsibility
+  return Response.ok('Saved ${bytes.length} bytes');
 });
 ```
 

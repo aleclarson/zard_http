@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:zard/zard.dart';
 import 'data.dart';
@@ -10,7 +11,7 @@ abstract class ContractClient {
   Future<Res> request<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract, {
     Map<String, dynamic>? query,
-    Map<String, dynamic>? body,
+    dynamic body,
     Map<String, String>? headers,
   });
 }
@@ -25,7 +26,7 @@ class HttpContractClient implements ContractClient {
   Future<Res> request<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract, {
     Map<String, dynamic>? query,
-    Map<String, dynamic>? body,
+    dynamic body,
     Map<String, String>? headers,
   }) async {
     // 1. Pre-flight Validation
@@ -51,27 +52,33 @@ class HttpContractClient implements ContractClient {
     );
 
     final requestHeaders = {
-      if (body != null) 'Content-Type': 'application/json',
+      if (body is Map) 'Content-Type': 'application/json',
       ...?headers,
     };
 
     final request = http.Request(contract.method, uri);
     request.headers.addAll(requestHeaders);
     if (body != null) {
-      request.body = jsonEncode(body);
+      if (body is Map) {
+        request.body = jsonEncode(body);
+      } else if (body is Uint8List || body is List<int>) {
+        request.bodyBytes = body as List<int>;
+      } else {
+        request.body = body.toString();
+      }
     }
 
     // 3. Send
     final response = await _client.send(request);
 
     // 4. Wrap Response
-    if (contract is RawQuery<R> || contract is RawCommand<R>) {
+    if (contract is RawQuery<R> || contract is RawCommand<R> || contract is RawUpload<R>) {
       return response as Res;
     }
 
-    if (contract is ObjectQuery<R> || contract is ObjectCommand<R>) {
+    if (contract is ObjectQuery<R> || contract is ObjectCommand<R> || contract is ObjectUpload<R>) {
       return ObjectResponse<R>(response) as Res;
-    } else if (contract is ListQuery<R> || contract is ListCommand<R>) {
+    } else if (contract is ListQuery<R> || contract is ListCommand<R> || contract is ListUpload<R>) {
       return ListResponse<R>(response) as Res;
     }
 

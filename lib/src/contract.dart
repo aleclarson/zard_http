@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:zard/zard.dart';
 import 'data.dart';
@@ -6,7 +7,7 @@ abstract class HttpContract<R, Res extends http.BaseResponse> {
   final String method;
   final String path;
   final Schema<Map<String, dynamic>>? query;
-  final Schema<Map<String, dynamic>>? body;
+  final Schema<dynamic>? body;
   final Schema<Map<String, dynamic>>? headers;
 
   HttpContract({
@@ -70,4 +71,31 @@ class RawCommand<R> extends HttpContract<R, http.StreamedResponse> {
     super.query,
     super.headers,
   }) : super(method: method, body: body);
+}
+
+class ObjectUpload<R> extends HttpContract<R, ObjectResponse<R>> {
+  ObjectUpload({
+    String method = 'POST',
+    required super.path,
+    super.query,
+    super.headers,
+  }) : super(method: method);
+}
+
+class ListUpload<R> extends HttpContract<R, ListResponse<R>> {
+  ListUpload({
+    String method = 'POST',
+    required super.path,
+    super.query,
+    super.headers,
+  }) : super(method: method);
+}
+
+class RawUpload<R> extends HttpContract<R, http.StreamedResponse> {
+  RawUpload({
+    String method = 'POST',
+    required super.path,
+    super.query,
+    super.headers,
+  }) : super(method: method);
 }

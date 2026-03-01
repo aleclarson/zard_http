@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
@@ -25,6 +26,8 @@ final searchUsers = ListQuery<({String id, String name})>(
 );
 
 final rawText = RawQuery<String>(path: '/raw');
+
+final uploadBytes = RawUpload<String>(path: '/upload');
 
 enum UserRole { admin, member }
 
@@ -67,6 +70,11 @@ void main() {
 
       router.addQuery(rawText, (request) async {
         return Response.ok('Plain text response');
+      });
+
+      router.addUpload(uploadBytes, (request) async {
+        final bytes = await request.read().toBytes();
+        return Response.ok('Received ${bytes.length} bytes');
       });
 
       server = await shelf_io.serve(router, 'localhost', 0);
@@ -130,6 +138,14 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(await response.stream.bytesToString(), 'Plain text response');
+    });
+
+    test('Upload bytes works', () async {
+      final bytes = Uint8List.fromList([1, 2, 3, 4, 5]);
+      final response = await client.request(uploadBytes, body: bytes);
+
+      expect(response.statusCode, 200);
+      expect(await response.stream.bytesToString(), 'Received 5 bytes');
     });
 
     test('Validation fails on client', () async {

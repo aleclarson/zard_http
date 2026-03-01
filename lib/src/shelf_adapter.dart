@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -32,6 +33,24 @@ extension ContractRouter on Router {
     add(contract.method, contract.path, (Request shelfRequest) async {
       try {
         final contractRequest = await ShelfQueryRequest.fromShelfRequest<R, Res>(shelfRequest, contract);
+        return await handler(contractRequest);
+      } on ZardError catch (e) {
+        return Response(400,
+            body: jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
+            headers: {'Content-Type': 'application/json'});
+      } catch (e) {
+        return Response.internalServerError(body: e.toString());
+      }
+    });
+  }
+
+  void addUpload<R, Res extends http.BaseResponse>(
+    HttpContract<R, Res> contract,
+    Future<Response> Function(UploadRequest<R>) handler,
+  ) {
+    add(contract.method, contract.path, (Request shelfRequest) async {
+      try {
+        final contractRequest = await ShelfUploadRequest.fromShelfRequest<R, Res>(shelfRequest, contract);
         return await handler(contractRequest);
       } on ZardError catch (e) {
         return Response(400,
@@ -128,6 +147,48 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
       query: queryData,
       headers: headers,
       body: bodyData,
+    );
+  }
+}
+
+class ShelfUploadRequest<R> implements UploadRequest<R> {
+  final Request shelfRequest;
+  @override
+  final ObjectData<R>? query;
+  @override
+  final Map<String, String> headers;
+
+  ShelfUploadRequest({
+    required this.shelfRequest,
+    this.query,
+    required this.headers,
+  });
+
+  @override
+  Stream<List<int>> read() => shelfRequest.read();
+
+  static Future<ShelfUploadRequest<R>> fromShelfRequest<R, Res extends http.BaseResponse>(
+    Request shelfRequest,
+    HttpContract<R, Res> contract,
+  ) async {
+    // Validate Headers
+    final headers = shelfRequest.headers;
+    if (contract.headers != null) {
+      contract.headers!.parse(headers);
+    }
+
+    // Validate Query
+    ObjectData<R>? queryData;
+    if (contract.query != null) {
+      final queryParams = shelfRequest.url.queryParameters;
+      final parsedQuery = contract.query!.parse(queryParams);
+      queryData = ObjectData<R>(parsedQuery as Map<String, dynamic>);
+    }
+
+    return ShelfUploadRequest<R>(
+      shelfRequest: shelfRequest,
+      query: queryData,
+      headers: headers,
     );
   }
 }

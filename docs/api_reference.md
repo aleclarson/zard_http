@@ -13,49 +13,31 @@ The base abstract class for all contracts.
 - `method`: HTTP method (e.g., 'GET', 'POST').
 - `path`: URL path template.
 - `query`: `Schema<Map<String, dynamic>>?` for query parameter validation.
-- `body`: `Schema<Map<String, dynamic>>?` for request body validation.
+- `body`: `Schema<dynamic>?` for request body validation.
 - `headers`: `Schema<Map<String, dynamic>>?` for request header validation.
 
 ---
 
 ### Contract Subclasses
 
-#### `ObjectQuery<R>`
+#### `ObjectQuery<R>`, `ListQuery<R>`, `RawQuery<R>`
 - **Method**: Defaults to `GET`.
-- **Response**: `ObjectResponse<R>`.
-- Used for fetching a single JSON object.
+- **Body**: Always `null`.
 
-#### `ListQuery<R>`
-- **Method**: Defaults to `GET`.
-- **Response**: `ListResponse<R>`.
-- Used for fetching an array of JSON objects.
-
-#### `RawQuery<R>`
-- **Method**: Defaults to `GET`.
-- **Response**: `http.StreamedResponse`.
-- Used for fetching non-JSON data.
-
-#### `ObjectCommand<R>`
+#### `ObjectCommand<R>`, `ListCommand<R>`, `RawCommand<R>`
 - **Method**: Defaults to `POST`.
-- **Response**: `ObjectResponse<R>`.
-- **Note**: Requires a `body` schema.
+- **Body**: Required `Schema<Map<String, dynamic>>`.
 
-#### `ListCommand<R>`
+#### `ObjectUpload<R>`, `ListUpload<R>`, `RawUpload<R>`
 - **Method**: Defaults to `POST`.
-- **Response**: `ListResponse<R>`.
-- **Note**: Requires a `body` schema.
-
-#### `RawCommand<R>`
-- **Method**: Defaults to `POST`.
-- **Response**: `http.StreamedResponse`.
-- **Note**: Requires a `body` schema.
+- **Body**: Always `null` schema. Validation is the server's responsibility.
 
 ---
 
 ## Data Access
 
 ### `ObjectData<R>`
-The core class for model-less data extraction.
+The core class for model-less data extraction from JSON maps.
 
 #### Methods
 - `get<T>(String key)`: Returns value of type `T`. Throws if missing or type mismatch.
@@ -66,7 +48,6 @@ The core class for model-less data extraction.
 - `parseDateTime(String key)`: Parses ISO 8601 string or epoch milliseconds `int`.
 - `parseEnumByName<T extends Enum>(String key, List<T> values)`: Maps string to enum.
 - `parseBySchema<T, RAW>(String key, Schema<T> schema)`: Uses a Zard schema for nested validation.
-- *All extensions include `Optional` variants.*
 
 ---
 
@@ -82,28 +63,14 @@ These are **zero-copy extension types** on `http.StreamedResponse`.
 
 ---
 
-## Client
-
-### `HttpContractClient`
-Implementation of the client-side contract execution.
-
-#### Constructor
-- `HttpContractClient(String baseUrl, {http.Client? client})`
-
-#### Methods
-- `Future<Res> request<R, Res>(HttpContract<R, Res> contract, { ... })`:
-    - Validates `body`, `query`, and `headers` locally before sending.
-    - Automatically wraps the response based on the contract type.
-
----
-
 ## Shelf Adapter
 
 Import `package:zard_http/shelf.dart`.
 
 ### `ContractRouter` (Extension on `Router`)
-- `addQuery(contract, handler)`: Registers a GET-style handler.
-- `addCommand(contract, handler)`: Registers a POST-style handler.
+- `addQuery(contract, handler)`: Registers a GET handler. Provides `QueryRequest`.
+- `addCommand(contract, handler)`: Registers a JSON handler. Provides `CommandRequest`.
+- `addUpload(contract, handler)`: Registers a Byte handler. Provides `UploadRequest`.
 
 ### Request Contexts
 
@@ -112,5 +79,7 @@ Import `package:zard_http/shelf.dart`.
 - `Map<String, String> headers`: Request headers.
 
 #### `CommandRequest<R>`
-- Extends `QueryRequest<R>`.
-- `ObjectData<R> body`: Validated, non-nullable request body.
+- `ObjectData<R> body`: Validated, non-nullable JSON body.
+
+#### `UploadRequest<R>`
+- `Stream<List<int>> read()`: Returns the raw request body stream.
