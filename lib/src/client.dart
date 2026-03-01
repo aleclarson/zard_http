@@ -7,7 +7,7 @@ import 'contract.dart';
 abstract class ContractClient {
   /// Executes the request. The generic [Res] seamlessly ensures that passing
   /// an `ObjectCommand` returns an `ObjectResponse`, etc.
-  Future<Res> request<R, Res extends BaseResponse<R>>(
+  Future<Res> request<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract, {
     Map<String, dynamic>? query,
     Map<String, dynamic>? body,
@@ -22,7 +22,7 @@ class HttpContractClient implements ContractClient {
   HttpContractClient(this.baseUrl, {http.Client? client}) : _client = client ?? http.Client();
 
   @override
-  Future<Res> request<R, Res extends BaseResponse<R>>(
+  Future<Res> request<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract, {
     Map<String, dynamic>? query,
     Map<String, dynamic>? body,
@@ -66,11 +66,7 @@ class HttpContractClient implements ContractClient {
 
     // 4. Wrap Response
     if (contract is RawQuery<R> || contract is RawCommand<R>) {
-      return RawResponse<R>(
-        response.statusCode,
-        response.headers,
-        response.stream,
-      ) as Res;
+      return response as Res;
     }
 
     final responseBytes = await response.stream.toBytes();
@@ -80,14 +76,24 @@ class HttpContractClient implements ContractClient {
     if (contract is ObjectQuery<R> || contract is ObjectCommand<R>) {
       return MapObjectResponse<R>(
         response.statusCode,
-        response.headers,
         (decoded ?? <String, dynamic>{}) as Map<String, dynamic>,
+        headers: response.headers,
+        contentLength: response.contentLength,
+        reasonPhrase: response.reasonPhrase,
+        isRedirect: response.isRedirect,
+        persistentConnection: response.persistentConnection,
+        request: response.request,
       ) as Res;
     } else if (contract is ListQuery<R> || contract is ListCommand<R>) {
       return MapListResponse<R>(
         response.statusCode,
-        response.headers,
         (decoded ?? <dynamic>[]) as List<dynamic>,
+        headers: response.headers,
+        contentLength: response.contentLength,
+        reasonPhrase: response.reasonPhrase,
+        isRedirect: response.isRedirect,
+        persistentConnection: response.persistentConnection,
+        request: response.request,
       ) as Res;
     }
 

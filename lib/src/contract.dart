@@ -1,7 +1,8 @@
+import 'package:http/http.dart' as http;
 import 'package:zard/zard.dart';
 import 'data.dart';
 
-abstract class HttpContract<R, Res extends BaseResponse<R>> {
+abstract class HttpContract<R, Res extends http.BaseResponse> {
   final String method;
   final String path;
   final Schema<Map<String, dynamic>>? query;
@@ -33,7 +34,7 @@ class ListQuery<R> extends HttpContract<R, ListResponse<R>> {
   }) : super(method: 'GET');
 }
 
-class RawQuery<R> extends HttpContract<R, RawResponse<R>> {
+class RawQuery<R> extends HttpContract<R, http.StreamedResponse> {
   RawQuery({
     required super.path,
     super.query,
@@ -61,7 +62,7 @@ class ListCommand<R> extends HttpContract<R, ListResponse<R>> {
   }) : super(method: method);
 }
 
-class RawCommand<R> extends HttpContract<R, RawResponse<R>> {
+class RawCommand<R> extends HttpContract<R, http.StreamedResponse> {
   RawCommand({
     String method = 'POST',
     required super.path,

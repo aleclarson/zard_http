@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:zard/zard.dart';
@@ -6,7 +7,7 @@ import 'contract.dart';
 import 'data.dart';
 
 extension ContractRouter on Router {
-  void addCommand<R, Res extends BaseResponse<R>>(
+  void addCommand<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract,
     Future<Response> Function(ContractRequest<R>) handler,
   ) {
@@ -18,14 +19,13 @@ extension ContractRouter on Router {
         return Response(400,
             body: jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
             headers: {'Content-Type': 'application/json'});
-      }
- catch (e) {
+      } catch (e) {
         return Response.internalServerError(body: e.toString());
       }
     });
   }
 
-  void addQuery<R, Res extends BaseResponse<R>>(
+  void addQuery<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract,
     Future<Response> Function(ContractRequest<R>) handler,
   ) =>
@@ -45,10 +45,11 @@ class ContractRequest<R> {
     required this.headers,
   });
 
-  static Future<ContractRequest<R>> fromShelfRequest<R, Res extends BaseResponse<R>>(
+  static Future<ContractRequest<R>> fromShelfRequest<R, Res extends http.BaseResponse>(
     Request shelfRequest,
     HttpContract<R, Res> contract,
   ) async {
+
     // Validate Headers
     final headers = shelfRequest.headers;
     if (contract.headers != null) {

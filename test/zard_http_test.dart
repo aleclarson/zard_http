@@ -84,7 +84,7 @@ void main() {
         body: {'name': 'Jane Doe', 'email': 'jane@example.com'},
       );
 
-      expect(response.status, 201);
+      expect(response.statusCode, 201);
       expect(response.get<String>('id'), '123');
       expect(response.get<String>('name'), 'Jane Doe');
       expect(response.get<String>('email'), 'jane@example.com');
@@ -118,7 +118,7 @@ void main() {
         query: {'search': 'test'},
       );
 
-      expect(response.status, 200);
+      expect(response.statusCode, 200);
       final list = response.toList();
       expect(list.length, 2);
       expect(list[0].get<String>('name'), contains('test'));
@@ -127,8 +127,8 @@ void main() {
     test('RawQuery works', () async {
       final response = await client.request(rawText);
 
-      expect(response.status, 200);
-      expect(await response.readAsString(), 'Plain text response');
+      expect(response.statusCode, 200);
+      expect(await response.stream.bytesToString(), 'Plain text response');
     });
 
     test('Validation fails on client', () async {

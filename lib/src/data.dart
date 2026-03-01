@@ -1,6 +1,5 @@
 import 'dart:collection';
-import 'dart:convert';
-import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:zard/zard.dart';
 
 /// Model-less data accessor.
@@ -100,49 +99,43 @@ class MapObjectData<R> implements ObjectData<R> {
   String toString() => _data.toString();
 }
 
-abstract class BaseResponse<R> {
-  int get status;
-  Map<String, String> get headers;
+abstract class ObjectResponse<R> extends http.BaseResponse implements ObjectData<R> {
+  ObjectResponse(
+    super.statusCode, {
+    super.contentLength,
+    super.request,
+    super.headers,
+    super.isRedirect,
+    super.persistentConnection,
+    super.reasonPhrase,
+  });
 }
 
-abstract class ObjectResponse<R> extends BaseResponse<R> implements ObjectData<R> {}
-
-abstract class ListResponse<R> extends BaseResponse<R> with IterableMixin<ObjectData<R>> {}
-
-class RawResponse<R> extends BaseResponse<R> {
-  @override
-  final int status;
-  @override
-  final Map<String, String> headers;
-  final Stream<List<int>> stream;
-
-  RawResponse(this.status, this.headers, this.stream);
-
-  Future<Uint8List> readAsBytes() async {
-    final builder = BytesBuilder(copy: false);
-    await for (final chunk in stream) {
-      builder.add(chunk);
-    }
-    return builder.takeBytes();
-  }
-
-  Future<String> readAsString({Encoding encoding = utf8}) async {
-    return encoding.decode(await readAsBytes());
-  }
-
-  @override
-  String toString() => 'RawResponse($status)';
+abstract class ListResponse<R> extends http.BaseResponse with IterableMixin<ObjectData<R>> {
+  ListResponse(
+    super.statusCode, {
+    super.contentLength,
+    super.request,
+    super.headers,
+    super.isRedirect,
+    super.persistentConnection,
+    super.reasonPhrase,
+  });
 }
 
 class MapObjectResponse<R> extends ObjectResponse<R> {
-  @override
-  final int status;
-  @override
-  final Map<String, String> headers;
   final ObjectData<R> _data;
 
-  MapObjectResponse(this.status, this.headers, Map<String, dynamic> data)
-      : _data = MapObjectData<R>(data);
+  MapObjectResponse(
+    super.statusCode,
+    Map<String, dynamic> data, {
+    super.contentLength,
+    super.request,
+    super.headers,
+    super.isRedirect,
+    super.persistentConnection,
+    super.reasonPhrase,
+  }) : _data = MapObjectData<R>(data);
 
   @override
   T get<T>(String key) => _data.get<T>(key);
@@ -154,22 +147,26 @@ class MapObjectResponse<R> extends ObjectResponse<R> {
   T parse<T, RAW>(String key, T Function(RAW) parser) => _data.parse<T, RAW>(key, parser);
 
   @override
-  String toString() => 'ObjectResponse($status, $_data)';
+  String toString() => 'ObjectResponse($statusCode, $_data)';
 }
 
 class MapListResponse<R> extends ListResponse<R> {
-  @override
-  final int status;
-  @override
-  final Map<String, String> headers;
   final List<ObjectData<R>> _items;
 
-  MapListResponse(this.status, this.headers, List<dynamic> items)
-      : _items = items.map((i) => MapObjectData<R>(i as Map<String, dynamic>)).toList();
+  MapListResponse(
+    super.statusCode,
+    List<dynamic> items, {
+    super.contentLength,
+    super.request,
+    super.headers,
+    super.isRedirect,
+    super.persistentConnection,
+    super.reasonPhrase,
+  }) : _items = items.map((i) => MapObjectData<R>(i as Map<String, dynamic>)).toList();
 
   @override
   Iterator<ObjectData<R>> get iterator => _items.iterator;
 
   @override
-  String toString() => 'ListResponse($status, $_items)';
+  String toString() => 'ListResponse($statusCode, $_items)';
 }
