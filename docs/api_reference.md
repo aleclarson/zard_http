@@ -36,7 +36,7 @@ The base abstract class for all contracts.
 
 ## Data Access
 
-### `ObjectData<R>`
+### `DataMap<R>`
 The core class for model-less data extraction from JSON maps.
 
 #### Methods
@@ -56,10 +56,10 @@ The core class for model-less data extraction from JSON maps.
 These are **zero-copy extension types** on `http.StreamedResponse`.
 
 ### `ObjectResponse<R>`
-- `Future<ObjectData<R>> json()`: Consumes the stream and returns an `ObjectData` instance.
+- `Future<DataMap<R>> json()`: Consumes the stream and returns an `DataMap` instance.
 
 ### `ListResponse<R>`
-- `Future<List<ObjectData<R>>> json()`: Consumes the stream and returns a list of `ObjectData` instances.
+- `Future<List<DataMap<R>>> json()`: Consumes the stream and returns a list of `DataMap` instances.
 
 ---
 
@@ -75,11 +75,11 @@ Import `package:zard_http/shelf.dart`.
 ### Request Contexts
 
 #### `QueryRequest<R>`
-- `ObjectData<R>? query`: Validated query parameters.
+- `DataMap<R>? query`: Validated query parameters.
 - `Map<String, String> headers`: Request headers.
 
 #### `CommandRequest<R>`
-- `ObjectData<R> body`: Validated, non-nullable JSON body.
+- `DataMap<R> body`: Validated, non-nullable JSON body.
 
 #### `UploadRequest<R>`
 - `Stream<List<int>> read()`: Returns the raw request body stream.

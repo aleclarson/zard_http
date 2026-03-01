@@ -1,8 +1,8 @@
 # Data Access Semantics
 
-## `ObjectData<R>`
+## `DataMap<R>`
 
-`ObjectData` is the model-less accessor over `Map<String, dynamic>` used in:
+`DataMap` is the model-less accessor over `Map<String, dynamic>` used in:
 - parsed server request inputs,
 - parsed client JSON responses.
 
@@ -22,8 +22,8 @@
 ## Response Wrappers
 
 Extension types over `http.StreamedResponse`:
-- `ObjectResponse<R>.json()` -> `Future<ObjectData<R>>`
-- `ListResponse<R>.json()` -> `Future<List<ObjectData<R>>>`
+- `ObjectResponse<R>.json()` -> `Future<DataMap<R>>`
+- `ListResponse<R>.json()` -> `Future<List<DataMap<R>>>`
 
 These wrappers preserve low overhead while providing ergonomic JSON extraction.
 

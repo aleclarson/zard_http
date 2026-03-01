@@ -5,7 +5,7 @@ import 'package:zard/zard.dart';
 
 /// Model-less data accessor.
 /// Shared by the server's incoming request bodies/queries, and the client's outgoing responses.
-extension type ObjectData<R>(Map<String, dynamic> _data) {
+extension type DataMap<R>(Map<String, dynamic> _data) {
   /// Strictly extracts a value of type [T]. Throws if missing or wrong type.
   T get<T>(String key) {
     final value = _data[key];
@@ -96,23 +96,23 @@ extension ByteStreamExtension on Stream<List<int>> {
 
 /// Model-less data accessor for queries.
 abstract class QueryRequest<R> {
-  ObjectData<R>? get query;
+  DataMap<R>? get query;
   Map<String, String> get headers;
 }
 
 /// Model-less data accessor for commands.
 abstract class CommandRequest<R> extends QueryRequest<R> {
   @override
-  ObjectData<R>? get query;
+  DataMap<R>? get query;
   @override
   Map<String, String> get headers;
-  ObjectData<R> get body;
+  DataMap<R> get body;
 }
 
 /// Data accessor for byte-based uploads.
 abstract class UploadRequest<R> extends QueryRequest<R> {
   @override
-  ObjectData<R>? get query;
+  DataMap<R>? get query;
   @override
   Map<String, String> get headers;
   Stream<List<int>> read();
@@ -121,19 +121,19 @@ abstract class UploadRequest<R> extends QueryRequest<R> {
 /// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction.
 extension type ObjectResponse<R>(http.StreamedResponse _response)
     implements http.BaseResponse {
-  Future<ObjectData<R>> json() async {
+  Future<DataMap<R>> json() async {
     final body = await _response.stream.bytesToString();
-    return ObjectData<R>(jsonDecode(body) as Map<String, dynamic>);
+    return DataMap<R>(jsonDecode(body) as Map<String, dynamic>);
   }
 }
 
 /// Zero-copy extension type for [http.StreamedResponse] to add model-less extraction for lists.
 extension type ListResponse<R>(http.StreamedResponse _response)
     implements http.BaseResponse {
-  Future<List<ObjectData<R>>> json() async {
+  Future<List<DataMap<R>>> json() async {
     final body = await _response.stream.bytesToString();
     return (jsonDecode(body) as List<dynamic>)
-        .map((i) => ObjectData<R>(i as Map<String, dynamic>))
+        .map((i) => DataMap<R>(i as Map<String, dynamic>))
         .toList();
   }
 }

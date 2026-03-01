@@ -90,10 +90,10 @@ Endpoints are defined as global constants. This allows both the client and serve
 When using `client.request`, the provided `body`, `query`, or `headers` maps are validated against the contract's Zard schemas before the request is even sent. On the server, the adapter validates the incoming data before your handler is ever called, automatically returning a `400 Bad Request` with descriptive Zard issues on failure.
 
 ### Asynchronous Data Access
-To maintain zero-copy performance, `ObjectResponse` and `ListResponse` wrap the raw `http.StreamedResponse`. Calling `.json()` asynchronously consumes the stream and decodes the JSON into an `ObjectData` accessor.
+To maintain zero-copy performance, `ObjectResponse` and `ListResponse` wrap the raw `http.StreamedResponse`. Calling `.json()` asynchronously consumes the stream and decodes the JSON into an `DataMap` accessor.
 
 ### Model-less Extraction
-`ObjectData` provides a robust API for extracting data without classes:
+`DataMap` provides a robust API for extracting data without classes:
 - `get<T>(key)`: Strict extraction.
 - `parseDateTime(key)`: Handles ISO 8601 strings and epoch integers.
 - `parseEnumByName(key, values)`: Safe enum mapping.

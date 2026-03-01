@@ -74,7 +74,7 @@ extension ContractRouter on Router {
 class ShelfQueryRequest<R> implements QueryRequest<R> {
   final Request shelfRequest;
   @override
-  final ObjectData<R>? query;
+  final DataMap<R>? query;
   @override
   final Map<String, String> headers;
 
@@ -96,11 +96,11 @@ class ShelfQueryRequest<R> implements QueryRequest<R> {
     }
 
     // Validate Query
-    ObjectData<R>? queryData;
+    DataMap<R>? queryData;
     if (contract.query != null) {
       final queryParams = shelfRequest.url.queryParameters;
       final parsedQuery = contract.query!.parse(queryParams);
-      queryData = ObjectData<R>(parsedQuery);
+      queryData = DataMap<R>(parsedQuery);
     }
 
     return ShelfQueryRequest<R>(
@@ -114,11 +114,11 @@ class ShelfQueryRequest<R> implements QueryRequest<R> {
 class ShelfCommandRequest<R> implements CommandRequest<R> {
   final Request shelfRequest;
   @override
-  final ObjectData<R>? query;
+  final DataMap<R>? query;
   @override
   final Map<String, String> headers;
   @override
-  final ObjectData<R> body;
+  final DataMap<R> body;
 
   ShelfCommandRequest({
     required this.shelfRequest,
@@ -139,18 +139,18 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
     }
 
     // Validate Query
-    ObjectData<R>? queryData;
+    DataMap<R>? queryData;
     if (contract.query != null) {
       final queryParams = shelfRequest.url.queryParameters;
       final parsedQuery = contract.query!.parse(queryParams);
-      queryData = ObjectData<R>(parsedQuery);
+      queryData = DataMap<R>(parsedQuery);
     }
 
     // Validate Body
     final bodyText = await shelfRequest.readAsString();
     final decodedBody = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
     final parsedBody = contract.body!.parse(decodedBody ?? <String, dynamic>{});
-    final bodyData = ObjectData<R>(parsedBody as Map<String, dynamic>);
+    final bodyData = DataMap<R>(parsedBody as Map<String, dynamic>);
 
     return ShelfCommandRequest<R>(
       shelfRequest: shelfRequest,
@@ -164,7 +164,7 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
 class ShelfUploadRequest<R> implements UploadRequest<R> {
   final Request shelfRequest;
   @override
-  final ObjectData<R>? query;
+  final DataMap<R>? query;
   @override
   final Map<String, String> headers;
 
@@ -189,11 +189,11 @@ class ShelfUploadRequest<R> implements UploadRequest<R> {
     }
 
     // Validate Query
-    ObjectData<R>? queryData;
+    DataMap<R>? queryData;
     if (contract.query != null) {
       final queryParams = shelfRequest.url.queryParameters;
       final parsedQuery = contract.query!.parse(queryParams);
-      queryData = ObjectData<R>(parsedQuery);
+      queryData = DataMap<R>(parsedQuery);
     }
 
     return ShelfUploadRequest<R>(

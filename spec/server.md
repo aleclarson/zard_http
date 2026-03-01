@@ -12,11 +12,11 @@ Each method registers `contract.method + contract.path` and converts incoming `s
 ## Request Contexts
 
 - `QueryRequest<R>`
-  - `query`: validated `ObjectData<R>?`
+  - `query`: validated `DataMap<R>?`
   - `headers`: raw/validated header map
 - `CommandRequest<R>`
   - query + headers
-  - `body`: validated `ObjectData<R>`
+  - `body`: validated `DataMap<R>`
 - `UploadRequest<R>`
   - query + headers
   - `read()`: byte stream passthrough

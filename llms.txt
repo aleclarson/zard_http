@@ -44,7 +44,7 @@ final uploadAvatar = ObjectUpload<({String url})>(path: '/avatar');
 
 ---
 
-## 2. Data Access (`ObjectData`)
+## 2. Data Access (`DataMap`)
 
 Primary interface for model-less JSON extraction. Used in `request.body` (server) and `response.json()` (client).
 
@@ -97,7 +97,7 @@ router.addQuery(getProfile, (request) async {
   return Response.ok(jsonEncode({'id': userId, 'name': 'Alec'}));
 });
 
-// 2. Command (JSON POST) - Body is ObjectData
+// 2. Command (JSON POST) - Body is DataMap
 router.addCommand(updateProfile, (request) async {
   final name = request.body.get<String>('name');
   return Response.ok(jsonEncode({'id': '1', 'name': name}));
@@ -114,7 +114,7 @@ router.addUpload(uploadAvatar, (request) async {
 
 ## Usage Guidelines for AI Agents
 
-1. **Model-less is the Default:** Do not create `User`, `Profile`, or `Settings` classes. Access values directly via `ObjectData` in handlers, logic, and UI.
+1. **Model-less is the Default:** Do not create `User`, `Profile`, or `Settings` classes. Access values directly via `DataMap` in handlers, logic, and UI.
 2. **Edge Validation:** Always define strict schemas in contracts. If a handler is called, the data is guaranteed valid.
 3. **Async Responses:** Always `await response.json()` on the client. The stream is only consumed once.
 4. **Phantom Types:** Provide descriptive record types for `R` in contract definitions to improve reasoning and documentation.
