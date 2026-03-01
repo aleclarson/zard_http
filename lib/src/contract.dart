@@ -46,28 +46,28 @@ class ObjectCommand<R> extends HttpContract<R, ObjectResponse<R>> {
   ObjectCommand({
     String method = 'POST',
     required super.path,
+    required Schema<Map<String, dynamic>> body,
     super.query,
-    super.body,
     super.headers,
-  }) : super(method: method);
+  }) : super(method: method, body: body);
 }
 
 class ListCommand<R> extends HttpContract<R, ListResponse<R>> {
   ListCommand({
     String method = 'POST',
     required super.path,
+    required Schema<Map<String, dynamic>> body,
     super.query,
-    super.body,
     super.headers,
-  }) : super(method: method);
+  }) : super(method: method, body: body);
 }
 
 class RawCommand<R> extends HttpContract<R, http.StreamedResponse> {
   RawCommand({
     String method = 'POST',
     required super.path,
+    required Schema<Map<String, dynamic>> body,
     super.query,
-    super.body,
     super.headers,
-  }) : super(method: method);
+  }) : super(method: method, body: body);
 }

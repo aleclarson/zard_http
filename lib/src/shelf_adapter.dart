@@ -120,7 +120,7 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
     // Validate Body
     final bodyText = await shelfRequest.readAsString();
     final decodedBody = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
-    final parsedBody = (contract.body ?? z.map({})).parse(decodedBody ?? <String, dynamic>{});
+    final parsedBody = contract.body!.parse(decodedBody ?? <String, dynamic>{});
     final bodyData = ObjectData<R>(parsedBody as Map<String, dynamic>);
 
     return ShelfCommandRequest<R>(
