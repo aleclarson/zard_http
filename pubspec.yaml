@@ -1,7 +1,7 @@
-name: dart_library_template
-description: Template for Dart library
+name: zard_http
+description: Under construction
 version: 0.1.0
-repository: https://github.com/aleclarson/dart_library_template
+repository: https://github.com/aleclarson/zard_http
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
