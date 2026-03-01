@@ -60,6 +60,9 @@ router.addCommand(createUser, (request) async {
 dart pub add zard_http
 ```
 
+## Documentation
+For a full list of classes, methods, and extensions, see the [API Reference](docs/api_reference.md).
+
 ## In-depth
 
 ### Singleton Contracts
