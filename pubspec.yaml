@@ -1,6 +1,6 @@
 name: zard_http
 description: A safe, model-less HTTP networking library for Dart that eliminates boilerplate while ensuring strict validation at the edges.
-version: 0.1.1
+version: 0.2.0
 repository: https://github.com/aleclarson/zard_http
 
 environment:
