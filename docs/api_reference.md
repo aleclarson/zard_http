@@ -44,6 +44,12 @@ The core class for model-less data extraction from JSON maps.
 - `getOptional<T>(String key)`: Returns `T?`. Returns `null` if missing.
 - `parse<T, RAW>(String key, T Function(RAW) parser)`: Manually maps a raw value.
 
+#### Typed Errors
+- `MissingKeyError`
+- `TypeMismatchError`
+- `InvalidDateTimeError`
+(all extend `DataAccessError`)
+
 #### Extensions
 - `parseDateTime(String key)`: Parses ISO 8601 string or epoch milliseconds `int`.
 - `parseEnumByName<T extends Enum>(String key, List<T> values)`: Maps string to enum.

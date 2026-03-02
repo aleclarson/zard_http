@@ -9,7 +9,7 @@ This roadmap reflects likely architectural next steps implied by the current cod
 2. **Body requirements parity**
    - Enforce command body presence consistently on both client and server (today validation is conditional on provided body).
 3. **Error taxonomy**
-   - Replace generic `Exception` throws in data access with focused typed errors for better observability and caller control.
+   - Replace generic `Exception` throws in data access with focused typed errors for better observability and caller control. ✅ (DataAccessError + specific subclasses)
 
 ## 2) Transport Lifecycle & Reliability
 

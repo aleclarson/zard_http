@@ -152,6 +152,25 @@ void main() {
       expect(data.parseEnumByNameOptional('missing', UserRole.values), isNull);
     });
 
+    test('DataMap throws typed access errors', () {
+      final data = DataMap<String>({'count': 1, 'when': true});
+
+      expect(
+        () => data.get<String>('missing'),
+        throwsA(isA<MissingKeyError>()),
+      );
+
+      expect(
+        () => data.get<String>('count'),
+        throwsA(isA<TypeMismatchError>()),
+      );
+
+      expect(
+        () => data.parseDateTime('when'),
+        throwsA(isA<InvalidDateTimeError>()),
+      );
+    });
+
     test('ListQuery works', () async {
       final response = await client.request(
         searchUsers,
