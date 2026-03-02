@@ -2,6 +2,12 @@
 
 This roadmap reflects likely architectural next steps implied by the current codebase and API shape.
 
+## Progress Snapshot
+
+- ✅ Client disposal implemented (`ContractClient.close()` + owned-client handling).
+- ✅ Client-side required-body pre-flight enforced for body-schema contracts.
+- ✅ Shelf validation errors now include machine-readable `code` plus message list.
+
 ## 1) Stabilize Core Semantics
 
 1. **Contract-type strictness**
@@ -35,6 +41,8 @@ This roadmap reflects likely architectural next steps implied by the current cod
    - Keep core independent; add additional adapters only as thin translation layers.
 2. **Consistent error payload contract**
    - Standardize machine-readable error bodies (codes + paths + messages), not only message arrays.
+   - ✅ Partial: code + messages implemented (`code: validation_error`, `errors: []`).
+   - 🔄 Remaining: path-level issue metadata.
 3. **Middleware interoperability docs**
    - Document adapter behavior with auth/logging/compression middleware ordering.
 

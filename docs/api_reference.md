@@ -87,6 +87,14 @@ Runtime guardrails:
 - `addUpload` expects an `HttpUpload` contract.
 - Wrong contract family throws `ArgumentError` at registration.
 
+Validation failures are translated to `400` JSON responses:
+```json
+{
+  "code": "validation_error",
+  "errors": ["..."]
+}
+```
+
 ### Request Contexts
 
 #### `QueryRequest<R>`
