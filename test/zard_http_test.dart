@@ -229,7 +229,10 @@ void main() {
       expect(res.statusCode, 400);
       final body = jsonDecode(res.body);
       expect(body['code'], 'validation_error');
-      expect(body['errors'], isNotNull);
+      final errors = body['errors'] as List;
+      expect(errors.isNotEmpty, isTrue);
+      expect(errors.first['message'], isNotNull);
+      expect(errors.first['path'], isNotNull);
     });
   });
 }
