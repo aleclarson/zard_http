@@ -2,6 +2,13 @@
 
 This roadmap reflects likely architectural next steps implied by the current codebase and API shape.
 
+## Progress Snapshot
+
+- ✅ Client disposal implemented (`ContractClient.close()` + owned-client handling).
+- ✅ Client-side required-body pre-flight enforced for body-schema contracts.
+- ✅ Added Shelf adapter contract-family guardrails (`addQuery`/`addCommand`/`addUpload` throw on misuse).
+- 🔄 In progress: move contract-family strictness from runtime guards to compile-time typing.
+
 ## 1) Stabilize Core Semantics
 
 1. **Contract-type strictness**
