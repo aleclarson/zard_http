@@ -3,6 +3,49 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:zard/zard.dart';
 
+/// Base error for model-less data access failures.
+sealed class DataAccessError implements Exception {
+  final String key;
+  final String message;
+
+  const DataAccessError({required this.key, required this.message});
+
+  @override
+  String toString() => message;
+}
+
+/// Thrown when a key is not present in the payload.
+class MissingKeyError extends DataAccessError {
+  const MissingKeyError({required super.key})
+      : super(message: 'Key "$key" not found in data');
+}
+
+/// Thrown when a key has an unexpected runtime type.
+class TypeMismatchError extends DataAccessError {
+  final Type expectedType;
+  final Type? actualType;
+
+  const TypeMismatchError({
+    required super.key,
+    required this.expectedType,
+    required this.actualType,
+  }) : super(
+          message: 'Value for key "$key" is not of type $expectedType '
+              '(actual type: $actualType)',
+        );
+}
+
+/// Thrown when a value cannot be interpreted as a [DateTime].
+class InvalidDateTimeError extends DataAccessError {
+  final Type actualType;
+
+  const InvalidDateTimeError({required super.key, required this.actualType})
+      : super(
+          message: 'Value for key "$key" is not a valid DateTime '
+              '(actual type: $actualType)',
+        );
+}
+
 /// Model-less data accessor.
 /// Shared by the server's incoming request bodies/queries, and the client's outgoing responses.
 extension type DataMap<R>(Map<String, dynamic> _data) {
@@ -10,11 +53,14 @@ extension type DataMap<R>(Map<String, dynamic> _data) {
   T get<T>(String key) {
     final value = _data[key];
     if (value == null && !_data.containsKey(key)) {
-      throw Exception('Key "$key" not found in data');
+      throw MissingKeyError(key: key);
     }
     if (value is! T) {
-      throw Exception(
-          'Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
+      throw TypeMismatchError(
+        key: key,
+        expectedType: T,
+        actualType: value?.runtimeType,
+      );
     }
     return value;
   }
@@ -24,8 +70,11 @@ extension type DataMap<R>(Map<String, dynamic> _data) {
     final value = _data[key];
     if (value == null) return null;
     if (value is! T) {
-      throw Exception(
-          'Value for key "$key" is not of type $T (actual type: ${value.runtimeType})');
+      throw TypeMismatchError(
+        key: key,
+        expectedType: T,
+        actualType: value.runtimeType,
+      );
     }
     return value;
   }
@@ -64,8 +113,7 @@ extension type DataMap<R>(Map<String, dynamic> _data) {
         if (value is String) {
           return DateTime.parse(value);
         }
-        throw Exception(
-            'Value for key "$key" is not a valid DateTime (actual type: ${value.runtimeType})');
+        throw InvalidDateTimeError(key: key, actualType: value.runtimeType);
       });
 
   /// Parses a [DateTime] from a string or an integer. Returns null if the key is missing.
@@ -78,8 +126,7 @@ extension type DataMap<R>(Map<String, dynamic> _data) {
     if (value is String) {
       return DateTime.parse(value);
     }
-    throw Exception(
-        'Value for key "$key" is not a valid DateTime (actual type: ${value.runtimeType})');
+    throw InvalidDateTimeError(key: key, actualType: value.runtimeType);
   }
 }
 
