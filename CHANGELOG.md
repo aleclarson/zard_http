@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Added `timeout` property to client requests and an optional `defaultTimeout` to `HttpContractClient`.
+- Introduced an injectable `retryStrategy` parameter to `HttpContractClient` for handling transport exceptions.
 - Enforced command body presence on the server for contracts that declare a body schema.
 - Added path-level issue metadata to standard validation error payload (`_validationErrorResponse`).
 

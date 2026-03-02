@@ -12,19 +12,29 @@ abstract class ContractClient {
     Map<String, dynamic>? query,
     dynamic body,
     Map<String, String>? headers,
+    Duration? timeout,
   });
 
   /// Releases any resources held by the underlying transport client.
   void close();
 }
 
+/// A policy that determines if a request should be retried after an error.
+typedef RetryStrategy = Future<bool> Function(int attempt, Object error);
+
 class HttpContractClient implements ContractClient {
   final String baseUrl;
   final http.Client _client;
   final bool _ownsClient;
+  final Duration? defaultTimeout;
+  final RetryStrategy? retryStrategy;
 
-  HttpContractClient(this.baseUrl, {http.Client? client})
-      : _client = client ?? http.Client(),
+  HttpContractClient(
+    this.baseUrl, {
+    http.Client? client,
+    this.defaultTimeout,
+    this.retryStrategy,
+  })  : _client = client ?? http.Client(),
         _ownsClient = client == null;
 
   @override
@@ -33,6 +43,7 @@ class HttpContractClient implements ContractClient {
     Map<String, dynamic>? query,
     dynamic body,
     Map<String, String>? headers,
+    Duration? timeout,
   }) async {
     // 1. Pre-flight Validation
     if (contract.body != null && body == null) {
@@ -49,7 +60,7 @@ class HttpContractClient implements ContractClient {
       contract.headers!.parse(headers);
     }
 
-    // 2. Build Request
+    // 2. Build URI
     final fullPath = baseUrl.endsWith('/') && contract.path.startsWith('/')
         ? baseUrl + contract.path.substring(1)
         : !baseUrl.endsWith('/') && !contract.path.startsWith('/')
@@ -66,20 +77,45 @@ class HttpContractClient implements ContractClient {
       ...?headers,
     };
 
-    final request = http.Request(contract.method, uri);
-    request.headers.addAll(requestHeaders);
-    if (body != null) {
-      if (body is Map) {
-        request.body = jsonEncode(body);
-      } else if (body is Uint8List || body is List<int>) {
-        request.bodyBytes = body as List<int>;
-      } else {
-        request.body = body.toString();
+    http.Request buildRequest() {
+      final req = http.Request(contract.method, uri);
+      req.headers.addAll(requestHeaders);
+      if (body != null) {
+        if (body is Map) {
+          req.body = jsonEncode(body);
+        } else if (body is Uint8List || body is List<int>) {
+          req.bodyBytes = body as List<int>;
+        } else {
+          req.body = body.toString();
+        }
       }
+      return req;
     }
 
-    // 3. Send
-    final response = await _client.send(request);
+    // 3. Send with Retries and Timeout
+    final effectiveTimeout = timeout ?? defaultTimeout;
+    int attempt = 0;
+    http.StreamedResponse? response;
+
+    while (true) {
+      attempt++;
+      try {
+        final req = buildRequest();
+        var future = _client.send(req);
+
+        if (effectiveTimeout != null) {
+          future = future.timeout(effectiveTimeout);
+        }
+
+        response = await future;
+        break; // Success, exit retry loop
+      } catch (e) {
+        if (retryStrategy != null && await retryStrategy!(attempt, e)) {
+          continue;
+        }
+        rethrow;
+      }
+    }
 
     // 4. Wrap Response
     if (contract is HttpContract<R, MapResponse<R>>) {

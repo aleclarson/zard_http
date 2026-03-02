@@ -34,6 +34,9 @@ final voidTest = HttpCommand<String>(
   body: z.map({}),
 ).returnsVoid();
 
+final timeoutTest = HttpQuery<String>(path: '/timeout_test');
+final retryTest = HttpQuery<String>(path: '/retry_test');
+
 enum UserRole { admin, member }
 
 void main() {
@@ -84,6 +87,20 @@ void main() {
 
       router.addCommand(voidTest, (request) async {
         return Response(204);
+      });
+
+      router.get('/timeout_test', (Request request) async {
+        await Future.delayed(const Duration(milliseconds: 100));
+        return Response.ok('delayed');
+      });
+
+      int failCount = 0;
+      router.get('/retry_test', (Request request) async {
+        if (failCount < 2) {
+          failCount++;
+          return Response.internalServerError();
+        }
+        return Response.ok('success');
       });
 
       server = await shelf_io.serve(router, 'localhost', 0);
@@ -233,6 +250,39 @@ void main() {
       expect(errors.isNotEmpty, isTrue);
       expect(errors.first['message'], isNotNull);
       expect(errors.first['path'], isNotNull);
+    });
+
+    test('Timeout works', () async {
+      expect(
+        () => client.request(timeoutTest,
+            timeout: const Duration(milliseconds: 10)),
+        throwsA(isA<
+            Exception>()), // Usually TimeoutException or similar from http client
+      );
+    });
+
+    test('Retry strategy works', () async {
+      int attempts = 0;
+
+      // We need a way to make it throw an Exception.
+      // Response.internalServerError() doesn't throw, it just returns a 500 response.
+      // So wait, my test needs to throw an error for retry to happen (e.g. SocketException).
+      // Let's close the client connection or use a bad port for a true exception.
+
+      final badClient = HttpContractClient(
+        'http://localhost:1',
+        retryStrategy: (attempt, error) async {
+          attempts = attempt;
+          return attempt < 3;
+        },
+      );
+
+      try {
+        await badClient.request(retryTest);
+      } catch (_) {}
+
+      expect(attempts, 3);
+      badClient.close();
     });
   });
 }
