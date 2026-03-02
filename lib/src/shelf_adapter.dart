@@ -90,7 +90,12 @@ Response _validationErrorResponse(ZardError error) => Response(
       400,
       body: jsonEncode({
         'code': 'validation_error',
-        'errors': error.issues.map((i) => i.message).toList(),
+        'errors': error.issues
+            .map((i) => {
+                  'message': i.message,
+                  'path': i.path,
+                })
+            .toList(),
       }),
       headers: {'Content-Type': 'application/json'},
     );
@@ -173,7 +178,7 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
     // Validate Body
     final bodyText = await shelfRequest.readAsString();
     final decodedBody = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
-    final parsedBody = contract.body!.parse(decodedBody ?? <String, dynamic>{});
+    final parsedBody = contract.body!.parse(decodedBody);
     final bodyData = DataMap<R>(parsedBody as Map<String, dynamic>);
 
     return ShelfCommandRequest<R>(

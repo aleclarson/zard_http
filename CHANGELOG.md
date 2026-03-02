@@ -1,3 +1,8 @@
+## Unreleased
+
+- Enforced command body presence on the server for contracts that declare a body schema.
+- Added path-level issue metadata to standard validation error payload (`_validationErrorResponse`).
+
 ## 0.2.0
 
 - **Breaking:** Added `close()` to `ContractClient` for explicit transport lifecycle management.
