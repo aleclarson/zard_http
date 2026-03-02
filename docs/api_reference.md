@@ -5,7 +5,7 @@
 Contracts define the interaction boundary between client and server. They are singletons that hold path, method, and validation metadata.
 
 ### `HttpContract<R, Res>`
-The base abstract class for all contracts.
+The base class for all contracts.
 - `R`: A phantom record type for documentation.
 - `Res`: The expected response type (extends `http.BaseResponse`).
 
@@ -19,6 +19,18 @@ The base abstract class for all contracts.
 - `.returnsList()`: Returns `ListResponse<R>`.
 - `.returnsVoid()`: Returns `VoidResponse<R>`.
 - (Default): Returns `http.StreamedResponse`.
+
+---
+
+## Client
+
+### `ContractClient`
+- `request(contract, {query, body, headers})`
+- `close()`
+
+### `HttpContractClient`
+- Performs pre-flight validation for provided query/body/headers.
+- Throws `ArgumentError` when a contract requires a body but `body` is `null`.
 
 ---
 

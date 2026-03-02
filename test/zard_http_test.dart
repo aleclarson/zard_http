@@ -92,6 +92,7 @@ void main() {
     });
 
     tearDown(() async {
+      client.close();
       await server.close();
     });
 
@@ -169,6 +170,13 @@ void main() {
         () => client.request(createUser,
             body: {'name': 'Jane Doe', 'email': 'not-an-email'}),
         throwsA(isA<ZardError>()),
+      );
+    });
+
+    test('Command body is required on client', () async {
+      expect(
+        client.request(createUser),
+        throwsA(isA<ArgumentError>()),
       );
     });
 

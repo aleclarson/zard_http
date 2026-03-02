@@ -6,21 +6,26 @@ import 'contract.dart';
 
 abstract class ContractClient {
   /// Executes the request. The generic [Res] seamlessly ensures that passing
-  /// an `ObjectCommand` returns an `MapResponse`, etc.
+  /// a contract with `.returnsMap()` returns a `MapResponse`, etc.
   Future<Res> request<R, Res extends http.BaseResponse>(
     HttpContract<R, Res> contract, {
     Map<String, dynamic>? query,
     dynamic body,
     Map<String, String>? headers,
   });
+
+  /// Releases any resources held by the underlying transport client.
+  void close();
 }
 
 class HttpContractClient implements ContractClient {
   final String baseUrl;
   final http.Client _client;
+  final bool _ownsClient;
 
   HttpContractClient(this.baseUrl, {http.Client? client})
-      : _client = client ?? http.Client();
+      : _client = client ?? http.Client(),
+        _ownsClient = client == null;
 
   @override
   Future<Res> request<R, Res extends http.BaseResponse>(
@@ -30,6 +35,10 @@ class HttpContractClient implements ContractClient {
     Map<String, String>? headers,
   }) async {
     // 1. Pre-flight Validation
+    if (contract.body != null && body == null) {
+      throw ArgumentError('A non-null body is required for this contract.');
+    }
+
     if (contract.query != null && query != null) {
       contract.query!.parse(query);
     }
@@ -84,5 +93,12 @@ class HttpContractClient implements ContractClient {
     }
 
     throw Exception('Unknown contract type: $Res');
+  }
+
+  @override
+  void close() {
+    if (_ownsClient) {
+      _client.close();
+    }
   }
 }
