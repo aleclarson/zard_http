@@ -18,10 +18,7 @@ extension ContractRouter on Router {
                 shelfRequest, contract);
         return await handler(contractRequest);
       } on ZardError catch (e) {
-        return Response(400,
-            body:
-                jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
-            headers: {'Content-Type': 'application/json'});
+        return _validationErrorResponse(e);
       } catch (e) {
         return Response.internalServerError(body: e.toString());
       }
@@ -39,10 +36,7 @@ extension ContractRouter on Router {
                 shelfRequest, contract);
         return await handler(contractRequest);
       } on ZardError catch (e) {
-        return Response(400,
-            body:
-                jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
-            headers: {'Content-Type': 'application/json'});
+        return _validationErrorResponse(e);
       } catch (e) {
         return Response.internalServerError(body: e.toString());
       }
@@ -60,16 +54,22 @@ extension ContractRouter on Router {
                 shelfRequest, contract);
         return await handler(contractRequest);
       } on ZardError catch (e) {
-        return Response(400,
-            body:
-                jsonEncode({'errors': e.issues.map((i) => i.message).toList()}),
-            headers: {'Content-Type': 'application/json'});
+        return _validationErrorResponse(e);
       } catch (e) {
         return Response.internalServerError(body: e.toString());
       }
     });
   }
 }
+
+Response _validationErrorResponse(ZardError error) => Response(
+      400,
+      body: jsonEncode({
+        'code': 'validation_error',
+        'errors': error.issues.map((i) => i.message).toList(),
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
 
 class ShelfQueryRequest<R> implements QueryRequest<R> {
   final Request shelfRequest;

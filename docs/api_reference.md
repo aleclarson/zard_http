@@ -75,6 +75,14 @@ Import `package:zard_http/shelf.dart`.
 - `addCommand(contract, handler)`: Registers a JSON handler. Provides `CommandRequest`.
 - `addUpload(contract, handler)`: Registers a Byte handler. Provides `UploadRequest`.
 
+Validation failures are translated to `400` JSON responses:
+```json
+{
+  "code": "validation_error",
+  "errors": ["..."]
+}
+```
+
 ### Request Contexts
 
 #### `QueryRequest<R>`
