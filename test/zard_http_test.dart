@@ -96,6 +96,25 @@ void main() {
       await server.close();
     });
 
+    test('Router rejects wrong contract family', () {
+      expect(
+        () => router.addCommand(rawText, (request) async => Response.ok('bad')),
+        throwsA(isA<ArgumentError>()),
+      );
+
+      expect(
+        () =>
+            router.addQuery(createUser, (request) async => Response.ok('bad')),
+        throwsA(isA<ArgumentError>()),
+      );
+
+      expect(
+        () =>
+            router.addUpload(createUser, (request) async => Response.ok('bad')),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
     test('ObjectCommand works', () async {
       final response = await client.request(
         createUser,

@@ -11,6 +11,14 @@ extension ContractRouter on Router {
     HttpContract<R, Res> contract,
     Future<Response> Function(CommandRequest<R>) handler,
   ) {
+    if (contract is! HttpCommand<R>) {
+      throw ArgumentError.value(
+        contract,
+        'contract',
+        'addCommand expects an HttpCommand contract.',
+      );
+    }
+
     add(contract.method, contract.path, (Request shelfRequest) async {
       try {
         final contractRequest =
@@ -32,6 +40,14 @@ extension ContractRouter on Router {
     HttpContract<R, Res> contract,
     Future<Response> Function(QueryRequest<R>) handler,
   ) {
+    if (contract is! HttpQuery<R>) {
+      throw ArgumentError.value(
+        contract,
+        'contract',
+        'addQuery expects an HttpQuery contract.',
+      );
+    }
+
     add(contract.method, contract.path, (Request shelfRequest) async {
       try {
         final contractRequest =
@@ -53,6 +69,14 @@ extension ContractRouter on Router {
     HttpContract<R, Res> contract,
     Future<Response> Function(UploadRequest<R>) handler,
   ) {
+    if (contract is! HttpUpload<R>) {
+      throw ArgumentError.value(
+        contract,
+        'contract',
+        'addUpload expects an HttpUpload contract.',
+      );
+    }
+
     add(contract.method, contract.path, (Request shelfRequest) async {
       try {
         final contractRequest =

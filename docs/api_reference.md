@@ -71,9 +71,15 @@ These are **zero-copy extension types** on `http.StreamedResponse`.
 Import `package:zard_http/shelf.dart`.
 
 ### `ContractRouter` (Extension on `Router`)
-- `addQuery(contract, handler)`: Registers a GET handler. Provides `QueryRequest`.
-- `addCommand(contract, handler)`: Registers a JSON handler. Provides `CommandRequest`.
-- `addUpload(contract, handler)`: Registers a Byte handler. Provides `UploadRequest`.
+- `addQuery(contract, handler)`: Registers a query handler. Provides `QueryRequest`.
+- `addCommand(contract, handler)`: Registers a JSON command handler. Provides `CommandRequest`.
+- `addUpload(contract, handler)`: Registers a byte upload handler. Provides `UploadRequest`.
+
+Runtime guardrails:
+- `addQuery` expects an `HttpQuery` contract.
+- `addCommand` expects an `HttpCommand` contract.
+- `addUpload` expects an `HttpUpload` contract.
+- Wrong contract family throws `ArgumentError` at registration.
 
 ### Request Contexts
 
