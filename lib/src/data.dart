@@ -79,6 +79,40 @@ extension type DataMap<R>(Map<String, dynamic> _data) {
     return value;
   }
 
+  /// Strictly extracts a list of values, where each element is a [DataMap].
+  List<DataMap<R>> getList(String key) {
+    final value = _data[key];
+    if (value == null && !_data.containsKey(key)) {
+      throw MissingKeyError(key: key);
+    }
+    if (value is! List) {
+      throw TypeMismatchError(
+        key: key,
+        expectedType: List,
+        actualType: value?.runtimeType,
+      );
+    }
+    return value
+        .map((i) => DataMap<R>(i as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  /// Extracts an optional list of [DataMap]s. Returns null if missing.
+  List<DataMap<R>>? getListOptional(String key) {
+    final value = _data[key];
+    if (value == null) return null;
+    if (value is! List) {
+      throw TypeMismatchError(
+        key: key,
+        expectedType: List,
+        actualType: value.runtimeType,
+      );
+    }
+    return value
+        .map((i) => DataMap<R>(i as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
   /// Parses complex data using a custom [parser] function.
   T parse<T, RAW>(String key, T Function(RAW) parser) {
     final value = get<RAW>(key);
