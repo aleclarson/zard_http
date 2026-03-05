@@ -79,6 +79,18 @@ extension type DataMap<R>(Map<String, dynamic> _data) {
     return value;
   }
 
+  /// Extracts a list of type [T].
+  List<T> getList<T>(String key) {
+    final value = get<List<dynamic>>(key);
+    return value.cast<T>();
+  }
+
+  /// Extracts an optional list of type [T].
+  List<T>? getOptionalList<T>(String key) {
+    final value = getOptional<List<dynamic>>(key);
+    return value?.cast<T>();
+  }
+
   /// Parses complex data using a custom [parser] function.
   T parse<T, RAW>(String key, T Function(RAW) parser) {
     final value = get<RAW>(key);

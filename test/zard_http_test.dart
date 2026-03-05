@@ -169,6 +169,23 @@ void main() {
       expect(data.parseEnumByNameOptional('missing', UserRole.values), isNull);
     });
 
+    test('DataMap getList and getOptionalList work', () {
+      final data = DataMap<String>({
+        'tags': ['dart', 'zard'],
+        'numbers': [1, 2, 3],
+      });
+
+      expect(data.getList<String>('tags'), equals(['dart', 'zard']));
+      expect(data.getList<int>('numbers'), equals([1, 2, 3]));
+      expect(data.getOptionalList<String>('tags'), equals(['dart', 'zard']));
+      expect(data.getOptionalList<String>('missing'), isNull);
+
+      expect(
+        () => data.getList<String>('numbers'),
+        throwsA(isA<TypeError>()),
+      );
+    });
+
     test('DataMap throws typed access errors', () {
       final data = DataMap<String>({'count': 1, 'when': true});
 
