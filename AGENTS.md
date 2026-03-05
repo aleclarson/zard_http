@@ -45,3 +45,10 @@ When updating the `CHANGELOG.md`, only include meaningful changes (features, bug
 3.  **Stage Changes**: Use `git add` to stage the relevant changes.
 4.  **Commit**: Use `git commit -m "<message>"` with a conventional commit message.
 5.  **No Push**: Do not push changes to remote branches unless explicitly requested by the user.
+
+
+## The `spec` Folder
+
+The `spec` directory is the Theory of Mind for the Goddard platform.
+- Humans do not edit it directly; intent is translated into structured, machine-readable specifications here.
+- If you are tasked with modifying or reasoning about specifications, start at `spec/manifest.md` as the domain routing hub.
