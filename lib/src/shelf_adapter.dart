@@ -27,8 +27,10 @@ extension ContractRouter on Router {
         return await handler(contractRequest);
       } on ZardError catch (e) {
         return _validationErrorResponse(e);
-      } catch (e) {
-        return Response.internalServerError(body: e.toString());
+      } on _InvalidJsonBodyError {
+        return _requestJsonErrorResponse();
+      } catch (_) {
+        return _internalServerErrorResponse();
       }
     });
   }
@@ -53,8 +55,8 @@ extension ContractRouter on Router {
         return await handler(contractRequest);
       } on ZardError catch (e) {
         return _validationErrorResponse(e);
-      } catch (e) {
-        return Response.internalServerError(body: e.toString());
+      } catch (_) {
+        return _internalServerErrorResponse();
       }
     });
   }
@@ -79,8 +81,8 @@ extension ContractRouter on Router {
         return await handler(contractRequest);
       } on ZardError catch (e) {
         return _validationErrorResponse(e);
-      } catch (e) {
-        return Response.internalServerError(body: e.toString());
+      } catch (_) {
+        return _internalServerErrorResponse();
       }
     });
   }
@@ -99,6 +101,23 @@ Response _validationErrorResponse(ZardError error) => Response(
       }),
       headers: {'Content-Type': 'application/json'},
     );
+
+Response _requestJsonErrorResponse() => Response(
+      400,
+      body: jsonEncode({
+        'code': 'validation_error',
+        'errors': [
+          {
+            'message': 'Request body must be valid JSON.',
+            'path': null,
+          },
+        ],
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+Response _internalServerErrorResponse() =>
+    Response.internalServerError(body: 'Internal server error');
 
 class ShelfQueryRequest<R> implements QueryRequest<R> {
   final Request shelfRequest;
@@ -177,7 +196,14 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
 
     // Validate Body
     final bodyText = await shelfRequest.readAsString();
-    final decodedBody = bodyText.isNotEmpty ? jsonDecode(bodyText) : null;
+    dynamic decodedBody;
+    if (bodyText.isNotEmpty) {
+      try {
+        decodedBody = jsonDecode(bodyText);
+      } on FormatException {
+        throw const _InvalidJsonBodyError();
+      }
+    }
     final parsedBody = contract.body!.parse(decodedBody);
     final bodyData = DataMap<R>(parsedBody as Map<String, dynamic>);
 
@@ -188,6 +214,10 @@ class ShelfCommandRequest<R> implements CommandRequest<R> {
       body: bodyData,
     );
   }
+}
+
+class _InvalidJsonBodyError implements Exception {
+  const _InvalidJsonBodyError();
 }
 
 class ShelfUploadRequest<R> implements UploadRequest<R> {

@@ -36,6 +36,7 @@ final voidTest = HttpCommand<String>(
 
 final timeoutTest = HttpQuery<String>(path: '/timeout_test');
 final retryTest = HttpQuery<String>(path: '/retry_test');
+final failingQuery = HttpQuery<String>(path: '/explode');
 
 enum UserRole { admin, member }
 
@@ -101,6 +102,10 @@ void main() {
           return Response.internalServerError();
         }
         return Response.ok('success');
+      });
+
+      router.addQuery(failingQuery, (request) async {
+        throw StateError('secret failure');
       });
 
       server = await shelf_io.serve(router, 'localhost', 0);
@@ -188,6 +193,20 @@ void main() {
       );
     });
 
+    test('DataMap list access throws typed element errors', () {
+      final data = DataMap<String>({
+        'items': [1]
+      });
+
+      final matcher = isA<TypeMismatchError>()
+          .having((error) => error.key, 'key', 'items[0]')
+          .having((error) => error.expectedType, 'expectedType', Map)
+          .having((error) => error.actualType, 'actualType', int);
+
+      expect(() => data.getList('items'), throwsA(matcher));
+      expect(() => data.getListOptional('items'), throwsA(matcher));
+    });
+
     test('ListQuery works', () async {
       final response = await client.request(
         searchUsers,
@@ -250,6 +269,44 @@ void main() {
       expect(errors.isNotEmpty, isTrue);
       expect(errors.first['message'], isNotNull);
       expect(errors.first['path'], isNotNull);
+    });
+
+    test('Malformed JSON fails on server with validation shape', () async {
+      final res = await http.post(
+        Uri.parse('$baseUrl/users'),
+        body: '{bad json',
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      expect(res.statusCode, 400);
+      final body = jsonDecode(res.body);
+      expect(body['code'], 'validation_error');
+      final errors = body['errors'] as List;
+      expect(errors, hasLength(1));
+      expect(errors.first['message'], 'Request body must be valid JSON.');
+      expect(errors.first['path'], isNull);
+    });
+
+    test('Unhandled server errors do not leak internals', () async {
+      final response = await client.request(failingQuery);
+
+      expect(response.statusCode, 500);
+      expect(await response.stream.bytesToString(), 'Internal server error');
+    });
+
+    test('ListResponse throws typed element errors', () async {
+      final response =
+          http.StreamedResponse(Stream.value(utf8.encode('[1]')), 200);
+
+      await expectLater(
+        ListResponse<String>(response).json(),
+        throwsA(
+          isA<TypeMismatchError>()
+              .having((error) => error.key, 'key', 'response[0]')
+              .having((error) => error.expectedType, 'expectedType', Map)
+              .having((error) => error.actualType, 'actualType', int),
+        ),
+      );
     });
 
     test('Timeout works', () async {

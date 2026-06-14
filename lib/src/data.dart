@@ -92,9 +92,7 @@ extension type DataMap<R>(Map<String, dynamic> _data) {
         actualType: value?.runtimeType,
       );
     }
-    return value
-        .map((i) => DataMap<R>(i as Map<String, dynamic>))
-        .toList(growable: false);
+    return _toDataMapList<R>(value, key);
   }
 
   /// Extracts an optional list of [DataMap]s. Returns null if missing.
@@ -108,9 +106,7 @@ extension type DataMap<R>(Map<String, dynamic> _data) {
         actualType: value.runtimeType,
       );
     }
-    return value
-        .map((i) => DataMap<R>(i as Map<String, dynamic>))
-        .toList(growable: false);
+    return _toDataMapList<R>(value, key);
   }
 
   /// Parses complex data using a custom [parser] function.
@@ -213,12 +209,37 @@ extension type ListResponse<R>(http.StreamedResponse _response)
     implements http.BaseResponse {
   Future<List<DataMap<R>>> json() async {
     final body = await _response.stream.bytesToString();
-    return (jsonDecode(body) as List<dynamic>)
-        .map((i) => DataMap<R>(i as Map<String, dynamic>))
-        .toList();
+    final decoded = jsonDecode(body);
+    if (decoded is! List) {
+      throw TypeMismatchError(
+        key: 'response',
+        expectedType: List,
+        actualType: decoded.runtimeType,
+      );
+    }
+    return _toDataMapList<R>(decoded, 'response');
   }
 }
 
 /// Zero-copy extension type for [http.StreamedResponse] to represent a void response.
 extension type VoidResponse<R>(http.StreamedResponse _response)
     implements http.BaseResponse {}
+
+List<DataMap<R>> _toDataMapList<R>(List<dynamic> value, String key) {
+  return List<DataMap<R>>.generate(
+    value.length,
+    (index) => _toDataMap<R>(value[index], '$key[$index]'),
+    growable: false,
+  );
+}
+
+DataMap<R> _toDataMap<R>(dynamic value, String key) {
+  if (value is! Map<String, dynamic>) {
+    throw TypeMismatchError(
+      key: key,
+      expectedType: Map,
+      actualType: value?.runtimeType,
+    );
+  }
+  return DataMap<R>(value);
+}
